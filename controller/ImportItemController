@@ -1,0 +1,709 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+use function Laravel\Prompts\table;
+
+class ImportItemController extends Controller
+{
+public function index()
+    {
+        return view('import_item');
+}
+    
+public function checkRefcode(Request $request)
+    {
+    $refcode = DB::table('refcode_data')->where('Refcode', $request->input('refcode'))->first();
+    
+    if ($refcode) {
+        // Return JSON response with 'exists' and 'description'
+        return response()->json(['exists' => true, 'description' => $refcode->description]);
+    }
+    else {
+        return response()->json(['exists' => false]);
+    }
+}
+
+public function material()
+{
+    // Fetch all rows from the 'material_code' table
+    $material = DB::table('material_code')->get();
+
+    // Fetch all rows from the 'import_add' table
+    $import_add = DB::table('import_add')->get();
+
+    // Fetch all rows from the 'droppoint_import' table
+    $droppoint = DB::table('droppoint_import')->get();
+
+    
+
+    // Return the 'import_item' view and pass the fetched data to the view
+    return view('import_item', compact('material', 'import_add', 'droppoint'));
+}
+
+    
+public function additem(Request $request)
+    {
+        // รับข้อมูลจาก request
+        $materialCodes = $request->materialCode ?? [];
+        $refcodenames = $request->refcodename ?? [];
+        $droppoint = $request->droppoint ?? [];
+        $date = $request->date ?? [];
+    
+        // ตรวจสอบจำนวนสูงสุดของ materialCode, refcodename, droppoint, และ date
+        $maxCount = max(count($materialCodes), count($refcodenames), count($droppoint), count($date));
+    
+        // เติม refcodenames, droppoint และ date ให้มีจำนวนเท่ากันกับ materialCodes
+        $refcodenames = array_pad($refcodenames, $maxCount, end($refcodenames));
+        $droppoint = array_pad($droppoint, $maxCount, end($droppoint));
+        $date = array_pad($date, $maxCount, end($date));
+    
+        // ตรวจสอบค่า session 'transaction_counter', ถ้าไม่มีให้ตั้งค่าเป็น 1
+        $counter = session('transaction_counter', 1); // เริ่มต้นจาก 1 หากไม่มีค่าใน session
+    
+        // เพิ่มค่า counter ทุกครั้งที่บันทึก
+        $counter++; // เพิ่มค่า counter ก่อนที่จะใช้ในการบันทึก
+    
+        // บันทึกค่า counter ใหม่ลงใน session
+        session(['transaction_counter' => $counter]); // เก็บค่า counter ใหม่ใน session
+   
+        $id = "IN";
+    
+        // สร้างอาเรย์ของข้อมูลที่ต้องการแทรก
+        $data = [];
+        $sum = [];
+
+for ($i = 0; $i < $maxCount; $i++) {
+
+    // ใช้ str_pad เพื่อให้เลข counter มีความยาว 3 หลัก เช่น 001, 002, 003
+    $transaction = $id . str_pad($counter, 3, '0', STR_PAD_LEFT);
+    
+    // คำนวณ available ทันที
+    
+    $quantity = $request->Amout[$i] ?? 0;
+    $withdraw = $quantities_with[$i] ?? null ?? 0;
+    $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
+
+    // เตรียมข้อมูลสำหรับ insert ลงใน import_add
+    $data[] = [
+        'refcode_import' => $refcodenames[$i],
+        'droppoint_import' => $droppoint[$i],
+        'material_code_import' => $materialCodes[$i],
+        'material_name_import' => $request->materialName[$i] ?? '',
+        'spec_size_import' => $request->specSize[$i] ?? '',
+        'brand' => $request->brand[$i] ?? '',
+        'unit' => $request->unit[$i] ?? '',
+        'quantity' => $quantity,
+        'remark' => $request->Remark[$i] ?? '',
+        'date' => $date[$i],
+        'transaction' => $transaction,
+        'import_quantity' => $maxCount
+    ];
+
+    // เตรียมข้อมูลสำหรับตรวจสอบและอัปเดตใน sum
+    $sum[] = [
+        'refcode' => $refcodenames[$i],
+        'droppoint' => $droppoint[$i],
+        'material_code' => $materialCodes[$i],
+        'material_name' => $request->materialName[$i] ?? '',
+        'spec' => $request->specSize[$i] ?? '',
+        'unit' => $request->unit[$i] ?? '',
+        'quantity' => $quantity,
+        'withdraw' => $withdraw,
+        'available' => $available // ใส่ available ที่คำนวณไว้แล้ว
+    ];
+}
+
+//dd($sum);
+
+// Insert data ลงใน table import_add
+DB::table('import_add')->insert($data);
+
+// ตรวจสอบและอัปเดตข้อมูลใน table sum
+foreach ($sum as $sumItem) {
+    $existingSum = DB::table('sum')
+        ->where('refcode', $sumItem['refcode'])
+        ->where('droppoint', $sumItem['droppoint'])
+        ->where('material_code', $sumItem['material_code'])
+        ->where('material_name', $sumItem['material_name'])
+        ->where('spec', $sumItem['spec'])
+        ->first();
+
+    if ($existingSum) {
+        // ถ้ามีข้อมูลตรงกัน ให้อัปเดต quantity และ available
+        $newQuantity = $existingSum->quantity + $sumItem['quantity'];
+        $newAvailable = $existingSum->available + $sumItem['available']; // เพิ่ม available ใหม่
+
+        DB::table('sum')
+            ->where('id', $existingSum->id)
+            ->update([
+                'quantity' => $newQuantity,
+                'available' => $newAvailable
+            ]);
+    } else {
+        // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
+        DB::table('sum')->insert($sumItem);
+    }
+}
+
+return redirect('/import')->with('success', 'Data processed and available calculated successfully!');
+
+}
+    
+//import  Refcode
+public function import_refcode(Request $request) {
+
+        $dataToSave = [];
+
+        $refcode = DB::table('refcode_data')->get();
+
+       // dd($refcode);
+
+        if ($request->isMethod('post')){
+            $request->validate([
+                'csv_file_add' => 'required|file|mimes:csv,txt|max:2048',
+            ]);
+            $file = $request->file('csv_file_add');
+             // เปิดไฟล์ CSV
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            $isFirstRow = true;
+
+            while (($data = fgetcsv($handle, 300000, ',')) !== false) {
+
+                //dd($data);
+
+                //เพิ่มมาใหม่
+                if (empty(array_filter($data))) { 
+                    continue;
+                }
+                
+                 // Read only the first two columns (index 0 and 1)
+                 if (!$isFirstRow) {
+                    $dataToSave[] = [
+                        'refcode' => $data[0], // First column
+                        'description' => $data[1], // Second column
+                    ];
+                }
+                $isFirstRow = false;
+            }
+
+            //dd($dataToSave);
+
+            fclose($handle);
+        } else {
+            return back()->withErrors(['message' => 'ไม่สามารถเปิดไฟล์ CSV']);
+        }
+        }
+        // Pass both $refcode and $dataToSave to the view
+    return view('refcode', compact('refcode', 'dataToSave'));
+       
+} 
+
+//SAVE IMPORT Refcode 
+public function saveAdd(Request $request)
+{
+    $dataToSave = json_decode($request->data_add, true);
+
+    // ดึงข้อมูล refcode จากฐานข้อมูล
+    $refcode = DB::table('refcode_data')->get();
+    
+    // เริ่มต้น transaction
+    DB::beginTransaction();
+    
+    // ตรวจสอบว่า $dataToSave เป็น array และมีข้อมูล
+    if (!is_array($dataToSave)) {
+        return redirect('/addrefcode')->withErrors(['error' => 'ข้อมูลไม่ถูกต้องหรือไม่มีข้อมูลที่จะบันทึก']);
+    }
+
+    // Loop ผ่านแต่ละแถวใน $dataToSave
+    $newData = []; // สำหรับเก็บข้อมูลที่ไม่ซ้ำกัน
+    foreach ($dataToSave as $row) {
+        // เช็คว่า refcode ซ้ำหรือไม่
+        $matched = false;
+        foreach ($refcode as $item) {
+            if ($item->refcode === $row['refcode']) {
+                $matched = true;
+                break;
+            }
+        }
+
+        // ถ้า refcode ไม่ซ้ำกัน ก็เพิ่มข้อมูลใหม่
+        if (!$matched) {
+            $newData[] = [
+                'refCode' => $row['refcode'],
+                'description' => $row['description'],
+                // เพิ่มคอลัมน์อื่นๆ ตามที่ต้องการ
+            ];
+        }
+    }
+
+    // ถ้ามีข้อมูลที่ไม่ซ้ำกันให้ทำการบันทึก
+    if (count($newData) > 0) {
+        // Insert ข้อมูลที่ไม่ซ้ำ
+        DB::table('refcode_data')->insert($newData);
+        // Commit การทำธุรกรรม
+        DB::commit();
+        return redirect('/addrefcode')->with('success', 'บันทึกข้อมูลสำเร็จ');
+    } else {
+        // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
+        DB::rollBack(); // ยกเลิกการทำธุรกรรม
+        return redirect('/addrefcode')->withErrors(['error' => 'ข้อมูล Refcode ทั้งหมดซ้ำกัน']);
+    }
+}
+
+
+//Import Material
+public function import_material(Request $request) {
+
+        $dataToSave = [];
+
+        $material = DB::table('material_code')->get();
+
+        if ($request->isMethod('post')){
+            $request->validate([
+                'csv_file_material' => 'required|file|mimes:csv,txt|max:2048',
+            ]);
+            $file = $request->file('csv_file_material');
+             // เปิดไฟล์ CSV
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            $isFirstRow = true;
+
+            while (($data = fgetcsv($handle, 30000, ',')) !== false) {
+                
+                //Dubug ดูค่าที่อ่านได้จาก CSV
+
+                //dd($data);
+
+                //เพิ่มมาใหม่
+                if (empty(array_filter($data))) { 
+                    continue;
+                }
+                
+                if (!$isFirstRow) {
+                    $dataToSave[] = [
+                        'material_c' => $data[0],
+                        'material_n' => $data[1],
+                        'spec_size' => $data[2],
+                        'brand' => $data[3],
+                        'unit' => $data[4],
+                    ]; // เก็บข้อมูลที่ไม่ใช่แถวแรก
+                }
+                $isFirstRow = false;
+            }
+
+            //dd($dataToSave);
+
+            fclose($handle);
+        } else {
+            return back()->withErrors(['message' => 'ไม่สามารถเปิดไฟล์ CSV']);
+        }
+        }
+
+        // Pass both $refcode and $dataToSave to the view
+    return view('material', compact('material', 'dataToSave'));
+       
+}
+
+//SAVE IMPORT Savematerial 
+public function savematerial(Request $request){
+   
+        $dataToSave = json_decode($request->data_add, true);
+       //dd($dataToSave);
+        $material = DB::table('material_code')->get();
+        // Begin the transaction
+        DB::beginTransaction();
+        
+        // Decode the JSON data from the request
+        $dataToSave = json_decode($request->data_add, true);
+    
+        // Check if decoding was successful and if data is an array
+        if (!is_array($dataToSave)) {
+            return redirect('/material')->withErrors(['error' => 'ข้อมูลไม่ถูกต้องหรือไม่มีข้อมูลที่จะบันทึก']);
+        }
+
+        $newData = []; // สำหรับเก็บข้อมูลที่ไม่ซ้ำกัน
+
+        foreach($dataToSave as $row) {
+             // เช็คว่า Material ซ้ำหรือไม่
+             $check = false;
+             foreach($material as $item){
+                if($item->material_c === $row['material_c']){
+                    $check = true;
+                    break;
+                }
+             }
+
+             //ถ้า Material ไม่ซ้ำกัน จะเพิ่มข้อมูลใหม่
+        if(!$check) {
+            $newData[] = [
+                'material_c' => $row['material_c'],
+                'material_n' => $row['material_n'],
+                'spec_size' => $row['spec_size'],
+                'brand' => $row['brand'],
+                'unit' => $row['unit'],    
+                
+            ];
+        }
+    } 
+    //dd($newData);
+
+    if(count($newData) > 0 ){
+
+        // Insert related data into associated tables using the generated ID
+        DB::table('material_code')->insert($newData);
+        
+        // Commit the transaction
+        DB::commit();
+        // Redirect back with a success message
+        return redirect('/material')->with('success', 'บันทึกข้อมูลสำเร็จ');;
+
+    } else {
+         // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
+         DB::rollBack(); // ยกเลิกการทำธุรกรรม
+         return redirect('/material')->withErrors(['error' => 'ข้อมูล material ทั้งหมดซ้ำกัน']);
+    }       
+}
+
+//Droppoint
+public function droppoint(Request $request){
+        
+            $droppoint = DB::table('droppoint_import')->get();
+        
+            //dd($droppoint);
+        return view('droppoint', compact('droppoint'));
+        
+}
+
+// AddDroppoint
+public function addDroppoint(Request $request)
+    {
+        // ตรวจสอบข้อมูลที่รับเข้ามา
+        $request->validate([
+            'droppoint' => 'required', // กำหนดให้ droppoint เป็นค่าว่างไม่ได้
+        ], [
+            'droppoint.required' => 'กรุณากรอก Droppoint', // ข้อความแจ้งเมื่อไม่กรอกข้อมูล
+        ]);
+    
+        // ตรวจสอบว่ามี droppoint ซ้ำในฐานข้อมูลหรือไม่
+        $existingDroppoint = DB::table('droppoint_import')
+            ->where('droppoint', $request->input('droppoint'))
+            ->first();
+    
+        if ($existingDroppoint) {
+            // ส่งข้อความแจ้งเตือนว่า droppoint ซ้ำกัน
+            return redirect()->back()->withErrors(['droppoint' => 'Droppoint นี้มีอยู่ในระบบแล้ว'])->withInput();
+        }
+    
+        // สร้างข้อมูลสำหรับการบันทึก
+        $add = [
+            'droppoint' => $request->input('droppoint'), // ดึงค่า droppoint จาก request
+            'coordinate' => $request->input('coordinate'),  // ดึงค่า coordinate จาก request
+            'contact' =>$request->input('contact') // ดึงค่า contact จาก request
+        ];
+
+        //dd($add);
+    
+        // เก็บข้อมูลลงฐานข้อมูล
+        DB::table('droppoint_import')->insert($add);
+    
+        // Redirect พร้อมข้อความแจ้งเตือนความสำเร็จ
+        return redirect()->back()->with('success', 'Droppoint added successfully!');
+} 
+
+public function import_droppoint(Request $request) {
+    $dataToSave = [];
+
+    $droppoint = DB::table('droppoint_import')->get();
+
+    if ($request->isMethod('post')) {
+        $request->validate([
+            'csv_file_droppoint' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
+        $file = $request->file('csv_file_droppoint');
+        
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            $isFirstRow = true;
+
+            while (($data = fgetcsv($handle, 30000, ',')) !== false) {
+
+                // ข้ามแถวที่เป็นค่าว่าง
+                if (empty(array_filter($data))) {
+                    continue;
+                }
+
+                // เพิ่มข้อมูลลงใน dataToSave
+                if (!$isFirstRow) {
+                    // ใช้ trim() เพื่อเอาช่องว่างออกจากชื่อคีย์
+                    $dataToSave[] = [
+                        'droppoint' => trim($data[0]),  // ลบช่องว่างและแท็บออกจากค่าของ 'droppoint'
+                        'coordinate' => trim($data[1]),  // ลบช่องว่างและแท็บออกจากค่าของ 'droppoint'
+                        'contact' => trim($data[2]),  // ลบช่องว่างและแท็บออกจากค่าของ 'droppoint'
+                    ];
+                }
+                $isFirstRow = false;
+            }
+
+            fclose($handle);
+        } else {
+            return back()->withErrors(['message' => 'ไม่สามารถเปิดไฟล์ CSV']);
+        }
+    }
+
+    return view('droppoint', compact('droppoint', 'dataToSave'));
+}
+
+public function savedroppoint(Request $request){
+   
+    $dataToSave = json_decode($request->data_add, true);
+   //dd($dataToSave);
+    $droppoint = DB::table('droppoint_import')->get();
+    // Begin the transaction
+    DB::beginTransaction();
+    
+    // Decode the JSON data from the request
+    $dataToSave = json_decode($request->data_add, true);
+
+    // Check if decoding was successful and if data is an array
+    if (!is_array($dataToSave)) {
+        return redirect('/droppoint')->withErrors(['error' => 'ข้อมูลไม่ถูกต้องหรือไม่มีข้อมูลที่จะบันทึก']);
+    }
+
+    $newData = []; // สำหรับเก็บข้อมูลที่ไม่ซ้ำกัน
+
+    //dd($dataToSave);
+
+    foreach($dataToSave as $row) {
+        
+         // เช็คว่า Material ซ้ำหรือไม่
+         $check = false;
+         foreach($droppoint as $item){
+            if($item->droppoint === $row['droppoint']){
+                $check = true;
+                break;
+            }
+         }
+         
+         //dd($row);
+
+         //ถ้า Material ไม่ซ้ำกัน จะเพิ่มข้อมูลใหม่
+    if(!$check) {
+        $newData[] = [
+            'droppoint' => $row['droppoint'],    
+            'coordinate' => $row['coordinate'], 
+            'contact' => $row['contact'], 
+        ];
+    }
+} 
+
+
+if(count($newData) > 0 ){
+
+
+   //dd($newData);
+
+    // Insert related data into associated tables using the generated ID
+    DB::table('droppoint_import')->insert($newData);
+    
+    // Commit the transaction
+    DB::commit();
+    // Redirect back with a success message
+    return redirect('/droppoint')->with('success', 'บันทึกข้อมูลสำเร็จ');;
+
+} else {
+     // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
+     DB::rollBack(); // ยกเลิกการทำธุรกรรม
+     return redirect('/droppoint')->withErrors(['error' => 'ข้อมูล Droppoint ทั้งหมดซ้ำกัน']);
+}       
+}
+
+//Withdraw
+public function withdraw(Request $request){
+        
+    $withdraw = DB::table('withdraw')->get();
+
+
+    //แสดงใน Modal
+    $summary = DB::table('sum')
+    ->join('refcode_data', 'sum.refcode', '=', 'refcode_data.refcode')
+        ->select(
+            'sum.refcode',
+            'sum.droppoint',
+            'sum.material_code',
+            'sum.material_name',
+            'sum.spec',
+            'sum.unit',
+            'sum.quantity',
+            'sum.available',
+            'refcode_data.description'
+        )
+        ->get();
+
+    //dd($summary);
+       
+
+    
+    $droppoint = DB::table('droppoint_import')->get();
+    $refcode = $request->input('refcode');
+
+    //dd($droppoint);
+return view('withdraw', compact('withdraw','droppoint','refcode','summary'));
+
+}
+
+//Check Withdraw
+public function checkImport_add(Request $request)
+{
+    // รับค่า refcode จาก request
+    $inputRefcode = $request->input('refcode');
+
+    // ตรวจสอบว่า refcode มีอยู่ใน refcode_data หรือไม่
+    $refcode = DB::table('refcode_data')->where('Refcode', $inputRefcode)->first();
+
+    if ($refcode) {
+        // ดึงข้อมูลเฉพาะจาก sum ที่เกี่ยวข้องกับ Refcode นั้น
+        $imports = DB::table('sum')->where('refcode', $inputRefcode)->get();
+
+        // ส่งข้อมูลกลับในรูปแบบ JSON
+        return response()->json([
+            'exists' => true,
+            'description' => $refcode->description,
+            'imports' => $imports,
+        ]);
+    } else {
+        // หากไม่พบ Refcode
+        return response()->json(['exists' => false]);
+    }
+}
+
+public function addWithdraw(Request $request)
+{
+    // รับข้อมูลจาก Request
+    $dates = $request->date ?? [];
+    $refcodes_before = $request->refcodename ?? [];
+    $refcodes_with = $request->refcode_import ?? [];
+    $material_codes = $request->material_code_import ?? [];
+    $material_names = $request->material_name_import ?? [];
+    $droppoints = $request->droppoint ?? [];
+    $quantities_before = $request->quantity ?? [];
+    $quantities_with = $request->Amout ?? [];
+    $spec = $request->specSize ?? []; 
+    $unit = $request->unit ?? [];
+    $avai = $request->available ?? [];
+
+
+    // ตรวจสอบว่าข้อมูลมีจำนวนเท่ากันในทุก array
+    $rowCount = count($refcodes_with); // นับจำนวน rows จาก array หนึ่งตัว
+    $data = [];
+    $sum = [];
+
+    for ($i = 0; $i < $rowCount; $i++) {
+
+        $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
+
+        $data[] = [
+            'date' => $dates[0] ?? null, // สมมติว่า date มีค่าเดียว
+            'refcode_before' => $refcodes_before[0] ?? null,
+            'refcode_with' => $refcodes_with[$i] ?? null,
+            'material_code' => $material_codes[$i] ?? null,
+            'material_name' => $material_names[$i] ?? null,
+            'spec' => $spec[$i] ?? null,
+            'droppoint' => $droppoints[$i] ?? null,
+            'quantity_before' => $avai[$i] ?? null,
+            'quantity_with' => $quantities_with[$i] ?? null,
+        ];
+    }
+
+    for ($i = 0; $i < $rowCount; $i++){
+
+        // คำนวณ total
+    $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
+
+        $sum[] = [
+            'refcode' => $refcodes_with[$i] ?? null,
+            'material_code' => $material_codes[$i] ?? null,
+            'material_name' => $material_names[$i] ?? null,
+            'droppoint' => $droppoints[$i] ?? null,
+            'spec' => $spec[$i] ?? null,
+            'unit' => $unit[$i] ?? null,
+            'quantity' => $avai[$i] ?? null ?? 0 ,
+            'withdraw' => $quantities_with[$i] ?? null ?? 0,
+            'available' => $total,
+        ];
+    }
+
+    // เก็บข้อมูลลงฐานข้อมูล
+
+    //dd($sum);
+    
+    // เก็บข้อมูลลง table withdraw
+DB::table('withdraw')->insert($data);
+
+// ตรวจสอบและอัปเดตข้อมูลใน table sum
+foreach ($sum as $sumItem) {
+
+    // ค้นหาข้อมูลที่มีเงื่อนไขตรงกันใน sum
+    $existingSum = DB::table('sum')
+        ->where('refcode', $sumItem['refcode'])
+        ->where('droppoint', $sumItem['droppoint'])
+        ->where('material_code', $sumItem['material_code'])
+        ->where('material_name', $sumItem['material_name'])
+        ->first();
+
+    if ($existingSum) {
+        // ถ้ามีข้อมูลตรงกัน ให้อัปเดตคอลัมน์ withdraw ก่อน
+        $newWithdraw = ($existingSum->withdraw ?? 0) + $sumItem['withdraw'];
+
+        DB::table('sum')
+            ->where('id', $existingSum->id)
+            ->update([
+                'withdraw' => $newWithdraw, // เพิ่มค่า withdraw
+                'available' => $existingSum->quantity - $newWithdraw, // คำนวณค่า available ใหม่
+                
+            ]);
+    } 
+        // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
+        else {
+            // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
+            DB::table('sum')->insert($sumItem);
+    }
+}
+
+return redirect('/withdraw')->with('success', 'Data processed and updated successfully!');
+}
+
+public function summary(Request $request){
+
+    $withdraw = DB::table('withdraw')->get();
+    $summary = DB::table('sum')->get();
+    $droppoint = DB::table('droppoint_import')->get();
+
+    return view('sum', compact('summary','droppoint'));
+
+}
+
+//API DROPPOINT
+
+
+public function search(Request $request)
+{
+    $term = $request->get('term'); // คำค้นหาที่ส่งมาจาก AJAX
+    $results = DB::table('droppoint_import') // ชื่อ Table
+        ->where('droppoint', 'LIKE', '%' . $term . '%') // ค้นหาแบบ partial match
+        ->get(['id', 'droppoint']) // เลือกเฉพาะ column ที่ต้องการ
+        ->map(function ($item) {
+            return [
+                'id' => $item->id, // ค่า ID ของ Droppoint
+                'droppoint' => $item->droppoint, // สิ่งที่จะแสดงใน Autocomplete
+                
+            ];
+        });
+
+    return response()->json($results); // ส่งข้อมูลกลับในรูป JSON
+}
+}
+
+
