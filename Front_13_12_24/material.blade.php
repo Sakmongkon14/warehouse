@@ -734,7 +734,6 @@
                             name="search">
                     </div>
 
-
                     <button class="button" type="button" aria-label="Export" id="exportButton">
                         <span class="button__text">Export</span>
                         <span class="button__icon">
@@ -753,7 +752,6 @@
                         </span>
                     </button>
                 </div>
-
 
                 <div class="table-container ">
                     <table class="table" id="table">
