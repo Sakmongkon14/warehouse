@@ -34,17 +34,20 @@ public function material()
     $material = DB::table('material_code')->get();
 
     // Fetch all rows from the 'import_add' table
-    $import_add = DB::table('import_add')->get();
+    $import_add = DB::table('import_add')
+    ->orderByDesc('id')
+    ->get();
+    
+    //echo $material;
 
     // Fetch all rows from the 'droppoint_import' table
     $droppoint = DB::table('droppoint_import')->get();
 
-    
+    //dd($import_add);
 
     // Return the 'import_item' view and pass the fetched data to the view
     return view('import_item', compact('material', 'import_add', 'droppoint'));
 }
-
     
 public function additem(Request $request)
     {
@@ -70,20 +73,35 @@ public function additem(Request $request)
     
         // บันทึกค่า counter ใหม่ลงใน session
         session(['transaction_counter' => $counter]); // เก็บค่า counter ใหม่ใน session
-   
-        $id = "IN";
     
         // สร้างอาเรย์ของข้อมูลที่ต้องการแทรก
         $data = [];
         $sum = [];
 
-for ($i = 0; $i < $maxCount; $i++) {
+        $rowCount = count($refcodenames);
+
+        $currentDate = $date[0];
+        $id = "IN";
+        $lastTransactionId = DB::table('import_add')
+                                ->whereDate('date',$currentDate)
+                                ->orderBy('transaction','desc')
+                                ->value('transaction');
+
+if ($lastTransactionId) { 
+        $lastIdNumber = (int) substr($lastTransactionId, 3); // Extract numeric part 
+        $newIdNumber = $lastIdNumber + 1; 
+    } else { 
+        $newIdNumber = 1; // Start from 1 if no transaction_id found for the date 
+    } 
+    $newTransactionId = $id . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+
+
+    for ($i = 0; $i < $maxCount; $i++) {
 
     // ใช้ str_pad เพื่อให้เลข counter มีความยาว 3 หลัก เช่น 001, 002, 003
     $transaction = $id . str_pad($counter, 3, '0', STR_PAD_LEFT);
     
     // คำนวณ available ทันที
-    
     $quantity = $request->Amout[$i] ?? 0;
     $withdraw = $quantities_with[$i] ?? null ?? 0;
     $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
@@ -100,7 +118,7 @@ for ($i = 0; $i < $maxCount; $i++) {
         'quantity' => $quantity,
         'remark' => $request->Remark[$i] ?? '',
         'date' => $date[$i],
-        'transaction' => $transaction,
+        'transaction' => $newTransactionId,
         'import_quantity' => $maxCount
     ];
 
@@ -118,7 +136,7 @@ for ($i = 0; $i < $maxCount; $i++) {
     ];
 }
 
-//dd($sum);
+//dd($data);
 
 // Insert data ลงใน table import_add
 DB::table('import_add')->insert($data);
@@ -153,13 +171,16 @@ foreach ($sum as $sumItem) {
 return redirect('/import')->with('success', 'Data processed and available calculated successfully!');
 
 }
-    
+
 //import  Refcode
 public function import_refcode(Request $request) {
 
         $dataToSave = [];
 
-        $refcode = DB::table('refcode_data')->get();
+        // ดึงข้อมูล 20 แถวจากตาราง refcode_data
+        $refcode = DB::table('refcode_data')
+        ->orderByDesc('id')
+        ->paginate(20);
 
        // dd($refcode);
 
@@ -211,6 +232,7 @@ public function saveAdd(Request $request)
     // ดึงข้อมูล refcode จากฐานข้อมูล
     $refcode = DB::table('refcode_data')->get();
     
+    
     // เริ่มต้น transaction
     DB::beginTransaction();
     
@@ -251,10 +273,9 @@ public function saveAdd(Request $request)
     } else {
         // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
         DB::rollBack(); // ยกเลิกการทำธุรกรรม
-        return redirect('/addrefcode')->withErrors(['error' => 'ข้อมูล Refcode ทั้งหมดซ้ำกัน']);
+        return redirect('/addrefcode')->withErrors(['error' => 'ข้อมูล Refcode ซ้ำกัน']);
     }
 }
-
 
 //Import Material
 public function import_material(Request $request) {
@@ -364,7 +385,7 @@ public function savematerial(Request $request){
     } else {
          // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
          DB::rollBack(); // ยกเลิกการทำธุรกรรม
-         return redirect('/material')->withErrors(['error' => 'ข้อมูล material ทั้งหมดซ้ำกัน']);
+         return redirect('/material')->withErrors(['error' => 'ข้อมูล material ซ้ำกัน']);
     }       
 }
 
@@ -383,9 +404,13 @@ public function addDroppoint(Request $request)
     {
         // ตรวจสอบข้อมูลที่รับเข้ามา
         $request->validate([
-            'droppoint' => 'required', // กำหนดให้ droppoint เป็นค่าว่างไม่ได้
+            'droppoint' => 'required', 
+            'coordinate' => 'required',
+            'contact' => 'required',
         ], [
-            'droppoint.required' => 'กรุณากรอก Droppoint', // ข้อความแจ้งเมื่อไม่กรอกข้อมูล
+            'droppoint.required' => 'กรุณากรอกจุดส่งสินค้า', 
+            'coordinate.required' => 'กรุณากรอกพิกัด',
+            'contact.required' => 'กรุณากรอกข้อมูลติดต่อ',
         ]);
     
         // ตรวจสอบว่ามี droppoint ซ้ำในฐานข้อมูลหรือไม่
@@ -516,14 +541,16 @@ if(count($newData) > 0 ){
 } else {
      // ถ้าไม่มีข้อมูลใหม่ให้บันทึก
      DB::rollBack(); // ยกเลิกการทำธุรกรรม
-     return redirect('/droppoint')->withErrors(['error' => 'ข้อมูล Droppoint ทั้งหมดซ้ำกัน']);
+     return redirect('/droppoint')->withErrors(['error' => 'ข้อมูล Droppoint ซ้ำกัน']);
 }       
 }
 
 //Withdraw
 public function withdraw(Request $request){
         
-    $withdraw = DB::table('withdraw')->get();
+    $withdraw = DB::table('withdraw')
+    ->orderBy('id', 'desc') // เรียงลำดับจากล่าสุดไปเก่าสุด
+    ->paginate(10); // แบ่งหน้า 20 แถวต่อหน้า
 
 
     //แสดงใน Modal
@@ -544,8 +571,6 @@ public function withdraw(Request $request){
 
     //dd($summary);
        
-
-    
     $droppoint = DB::table('droppoint_import')->get();
     $refcode = $request->input('refcode');
 
@@ -594,11 +619,26 @@ public function addWithdraw(Request $request)
     $unit = $request->unit ?? [];
     $avai = $request->available ?? [];
 
-
     // ตรวจสอบว่าข้อมูลมีจำนวนเท่ากันในทุก array
     $rowCount = count($refcodes_with); // นับจำนวน rows จาก array หนึ่งตัว
     $data = [];
     $sum = [];
+
+    // Function to generate transaction_id 
+    $currentDate = $dates[0]; 
+    $transactionIdBase = 'OUT'; 
+    $lastTransactionId = DB::table('withdraw') 
+                            ->whereDate('date', $currentDate) 
+                            ->orderBy('transaction_id', 'desc') 
+                            ->value('transaction_id'); 
+    
+    if ($lastTransactionId) { 
+        $lastIdNumber = (int) substr($lastTransactionId, 3); // Extract numeric part 
+        $newIdNumber = $lastIdNumber + 1; 
+    } else { 
+        $newIdNumber = 1; // Start from 1 if no transaction_id found for the date 
+    } 
+    $newTransactionId = $transactionIdBase . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
 
     for ($i = 0; $i < $rowCount; $i++) {
 
@@ -612,6 +652,7 @@ public function addWithdraw(Request $request)
             'material_name' => $material_names[$i] ?? null,
             'spec' => $spec[$i] ?? null,
             'droppoint' => $droppoints[$i] ?? null,
+            'transaction_id' => $newTransactionId,            
             'quantity_before' => $avai[$i] ?? null,
             'quantity_with' => $quantities_with[$i] ?? null,
         ];
@@ -620,7 +661,7 @@ public function addWithdraw(Request $request)
     for ($i = 0; $i < $rowCount; $i++){
 
         // คำนวณ total
-    $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
+        $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
 
         $sum[] = [
             'refcode' => $refcodes_with[$i] ?? null,
@@ -629,65 +670,54 @@ public function addWithdraw(Request $request)
             'droppoint' => $droppoints[$i] ?? null,
             'spec' => $spec[$i] ?? null,
             'unit' => $unit[$i] ?? null,
-            'quantity' => $avai[$i] ?? null ?? 0 ,
-            'withdraw' => $quantities_with[$i] ?? null ?? 0,
+            'quantity' => $avai[$i] ?? 0,
+            'withdraw' => $quantities_with[$i] ?? 0,
             'available' => $total,
         ];
     }
 
-    // เก็บข้อมูลลงฐานข้อมูล
+    // Use a transaction to ensure data consistency
+    DB::transaction(function () use ($data, $sum) {
+    DB::table('withdraw')->insert($data);
 
-    //dd($sum);
-    
-    // เก็บข้อมูลลง table withdraw
-DB::table('withdraw')->insert($data);
+        foreach ($sum as $sumItem) {
+            $existingSum = DB::table('sum')
+                ->where('refcode', $sumItem['refcode'])
+                ->where('droppoint', $sumItem['droppoint'])
+                ->where('material_code', $sumItem['material_code'])
+                ->where('material_name', $sumItem['material_name'])
+                ->first();
 
-// ตรวจสอบและอัปเดตข้อมูลใน table sum
-foreach ($sum as $sumItem) {
-
-    // ค้นหาข้อมูลที่มีเงื่อนไขตรงกันใน sum
-    $existingSum = DB::table('sum')
-        ->where('refcode', $sumItem['refcode'])
-        ->where('droppoint', $sumItem['droppoint'])
-        ->where('material_code', $sumItem['material_code'])
-        ->where('material_name', $sumItem['material_name'])
-        ->first();
-
-    if ($existingSum) {
-        // ถ้ามีข้อมูลตรงกัน ให้อัปเดตคอลัมน์ withdraw ก่อน
-        $newWithdraw = ($existingSum->withdraw ?? 0) + $sumItem['withdraw'];
-
-        DB::table('sum')
-            ->where('id', $existingSum->id)
-            ->update([
-                'withdraw' => $newWithdraw, // เพิ่มค่า withdraw
-                'available' => $existingSum->quantity - $newWithdraw, // คำนวณค่า available ใหม่
+            if ($existingSum) {
+                $newWithdraw = ($existingSum->withdraw ?? 0) + $sumItem['withdraw'];
                 
-            ]);
-    } 
-        // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
-        else {
-            // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
-            DB::table('sum')->insert($sumItem);
-    }
-}
+                DB::table('sum')
+                    ->where('id', $existingSum->id)
+                    ->update([
+                        'withdraw' => $newWithdraw,
+                        'available' => $existingSum->quantity - $newWithdraw,
+                    ]);
+            } else {
+                DB::table('sum')->insert($sumItem);
+            }
+        }
+    });
 
-return redirect('/withdraw')->with('success', 'Data processed and updated successfully!');
+    return redirect('/withdraw')->with('success', 'Data processed and updated successfully!');
 }
 
 public function summary(Request $request){
 
     $withdraw = DB::table('withdraw')->get();
-    $summary = DB::table('sum')->get();
+    $summary =  DB::table('sum')
+                ->orderBy('available', 'desc') // ใช้คำสั่ง orderBy เพื่อเรียงลำดับ มาก - น้อย
+                ->get(); // ดึงข้อมูลทั้งหมดจาก table sum
     $droppoint = DB::table('droppoint_import')->get();
 
     return view('sum', compact('summary','droppoint'));
-
 }
 
 //API DROPPOINT
-
-
 public function search(Request $request)
 {
     $term = $request->get('term'); // คำค้นหาที่ส่งมาจาก AJAX
@@ -698,7 +728,6 @@ public function search(Request $request)
             return [
                 'id' => $item->id, // ค่า ID ของ Droppoint
                 'droppoint' => $item->droppoint, // สิ่งที่จะแสดงใน Autocomplete
-                
             ];
         });
 
@@ -707,3 +736,5 @@ public function search(Request $request)
 }
 
 
+
+    
