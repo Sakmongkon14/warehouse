@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -649,7 +651,7 @@
 
 <body>
 
-    <div class="sidebar open">
+    <div class="sidebar ">
         <div class="logo_details">
             <div class="logo_name">GTN</div>
             <i class="bx bx-menu" id="btn"></i>
@@ -672,8 +674,6 @@
                 <span class="tooltip">เบิกของ</span>
             </li>
 
-
-
             <li>
                 <a href="sum">
                     <i class="fa-solid fa-square-poll-vertical"></i>
@@ -681,8 +681,6 @@
                 </a>
                 <span class="tooltip">วัสดุคงคลัง</span>
             </li>
-
-
 
             <li>
                 <a href="material">
@@ -708,7 +706,6 @@
                 <span class="tooltip">Refcode</span>
             </li>
 
-
         </ul>
     </div>
 
@@ -717,6 +714,7 @@
 
 
         <div class="container">
+
             <!--Add Modal-->
             <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -780,8 +778,8 @@
 
             <!-- Show Data -->
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#showDataModal"
-                style="width: 120px; height: 40px; text-align: center;">
-                Show Data
+                style="width: 170px; height: 40px; text-align: center;">
+                ประวัติการนำของเข้า
             </button>
 
             <!-- Show Data -->
@@ -790,7 +788,7 @@
                 <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="modal-title" id="showDataModalLabel">Show import_Data</h4>
+                            <h4 class="modal-title" id="showDataModalLabel">ประวัติการนำของเข้า</h4>
                             <button class="button" type="button" id="exportButton" aria-label="Export">
                                 <span class="button__text">Export</span>
                                 <span class="button__icon">
@@ -865,8 +863,6 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                            <button type="button" id="submitButton" class="btn btn-primary"
-                                style="display: none;">Submit</button>
                         </div>
                     </div>
                 </div>
@@ -890,7 +886,7 @@
                                 placeholder="กรุณากรอก Droppoint" required>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="droppoint" class="form-label">Droppoint</label>
                             <select name="droppoint[]" class="form-control" id="droppoint" required>
                                 <option value="" disabled selected>กรุณาเลือก Droppoint</option>
@@ -926,7 +922,7 @@
 
 
                 <!-- สร้างคอนเทนเนอร์ที่ครอบตาราง -->
-                <div style="max-height: 300px; overflow-y: auto;">
+                <div style="max-height: 270px; overflow-y: auto;">
                     <table class="table table-bordered" id="selectedMaterialsTable">
                         <thead>
                             <tr>
@@ -946,12 +942,12 @@
                         </tbody>
                     </table>
                 </div>
-        </div>
+            </div>
 
-        <div class="d-flex justify-content-center my-1">
-            <input id="submitButton" class="btn btn-success" type="submit" value="Submit" style="display: none;">
-            <!-- Hide initially -->
-        </div>
+                <div class="d-flex justify-content-center my-1">
+                    <input id="submitButton" class="btn btn-success" type="submit" value="Submit" style="display: none;">
+                    <!-- Hide initially -->
+                </div>
 
         </div>
 
@@ -1115,7 +1111,7 @@
             });
         </script>
 
-        
+
 
         <script>
             window.onload = function() {
