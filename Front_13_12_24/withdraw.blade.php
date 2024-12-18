@@ -935,7 +935,7 @@
                                             <th scope="col">Material Name</th>
                                             <th scope="col">Droppoint</th>
                                             <th scope="col">Date</th>
-                                            <th scope="col">Transavtion_ID</th>
+                                            <th scope="col">Transaction_ID</th>
                                             <th scope="col">Available</th>
                                             <th scope="col">Withdraw</th>
                                         </tr>
