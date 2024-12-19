@@ -14,7 +14,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>@yield('title')</title>
+
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+
+    
+
+    <!-- Scripts -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
 </head>
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
@@ -338,19 +357,11 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
-
-
-
-
-
-
     .hi {
         display: flex;
         align-items: baseline;
         gap: 10px;
     }
-
-
 
     /* Export*/
     .button {
@@ -509,11 +520,67 @@
     }
 </style>
 
-</style>
+
 
 
 
 <body>
+
+    <div id="app">
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+            <div class="container">
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Left Side Of Navbar -->
+                    <ul class="navbar-nav me-auto">
+
+                    </ul>
+
+                    <!-- Right Side Of Navbar -->
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Authentication Links -->
+                        @guest
+                            @if (Route::has('login'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                </li>
+                            @endif
+
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                </li>
+                            @endif
+                        @else
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        {{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
+                    </ul>
+                </div>
+            </div>
+        </nav>
+</div>
+
+    
 
     <div class="sidebar open">
         <div class="logo_details">
@@ -613,16 +680,59 @@
                 <div class="table-container ">
                     <table class="table" id="table">
                         <thead style="font-size: 12px; text-align:center">
-                            <tr>
-                                <th scope="background-color: skyblue">Refcode</th>
-                                <th scope="background-color: skyblue">Droppoint</th>
-                                <th scope="background-color: skyblue">Material_code</th>
-                                <th scope="background-color: skyblue">Material_name</th>
-                                <th scope="background-color: skyblue">Spec</th>
-                                <th scope="background-color: skyblue">Unit</th>
-                                <th scope="background-color: skyblue">Quantity</th>
-                                <th scope="background-color: skyblue">Withdraw</th>
-                                <th scope="background-color: skyblue">Available</th>
+
+
+                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                Refcode
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                    <input class="input-style" type="text" id="searchRefcode" name="searchRefcode"
+                                        style="width: 70px; height: 25px; padding: 5px; font-size: 12px;">
+                                </div>
+                            </th>
+
+                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                Droppoint
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                    <input class="input-style" type="text" id="Droppoint" name="Droppoint"
+                                        style="width: 100px; height: 25px; padding: 5px; font-size: 12px;">
+                                </div>
+                            </th>
+
+                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                Material_code
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                    <input class="input-style" type="text" id="Material_code" name="Material_code"
+                                        style="width: 140px; height: 25px; padding: 5px; font-size: 12px;">
+                                </div>
+                            </th>
+
+                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                Material_name
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                    <input class="input-style" type="text" id="Material_name" name="Material_name"
+                                        style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
+                                </div>
+                            </th>
+
+                            <th scope="background-color: skyblue;"
+                                style="text-align: center; vertical-align: middle;">Spec
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                    <input class="input-style" type="text" id="Spec" name="Spec"
+                                        style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
+                                </div>
+                            </th>
+
+
+
+                            <th scope="background-color: skyblue">Unit</th>
+                            <th scope="background-color: skyblue">Quantity</th>
+                            <th scope="background-color: skyblue">Withdraw</th>
+                            <th scope="background-color: skyblue">Available</th>
                             </tr>
                         </thead>
 
@@ -651,6 +761,7 @@
             </div>
         </div>
 
+        <!-- Search ทั้งหมด -->
         <script>
             $(document).ready(function() {
                 $('#search').on('keyup', function() {
@@ -660,9 +771,88 @@
                     $('#table tbody tr').filter(function() {
                         var rowText = $(this).text()
                             .toLowerCase(); // รวมข้อความทั้งหมดในแถวให้เป็นตัวพิมพ์เล็ก
-
                         // แสดงหรือซ่อนแถวตามที่ค่าจากช่องค้นหาพบ
                         $(this).toggle(rowText.indexOf(query) > -1);
+                    });
+                });
+            });
+        </script>
+
+        <!-- search Refcode  -->
+        <script>
+            $(document).ready(function() {
+                $('#searchRefcode').on('keyup', function() {
+                    var query = $(this).val().toLowerCase(); // ทำให้ query เป็นตัวพิมพ์เล็กทั้งหมด
+        
+                    // ค้นหาเฉพาะคอลัมน์ที่ต้องการ (เช่น คอลัมน์ที่ 1)
+                    $('#table tbody tr').filter(function() {
+                        var columnText = $(this).find('td:nth-child(1)').text().toLowerCase(); // เลือก td ในคอลัมน์แรก
+                        // แสดงหรือซ่อนแถวตามค่าที่ค้นหา
+                        $(this).toggle(columnText.indexOf(query) > -1);
+                    });
+                });
+            });
+        </script>
+
+        <!-- search Droppoint  -->
+        <script>
+            $(document).ready(function() {
+                $('#Droppoint').on('keyup', function() {
+                    var query = $(this).val().toLowerCase(); // ทำให้ query เป็นตัวพิมพ์เล็กทั้งหมด
+        
+                    // ค้นหาเฉพาะคอลัมน์ที่ต้องการ (เช่น คอลัมน์ที่ 1)
+                    $('#table tbody tr').filter(function() {
+                        var columnText = $(this).find('td:nth-child(2)').text().toLowerCase(); // เลือก td ในคอลัมน์แรก
+                        // แสดงหรือซ่อนแถวตามค่าที่ค้นหา
+                        $(this).toggle(columnText.indexOf(query) > -1);
+                    });
+                });
+            });
+        </script>
+
+        <!-- search Material_code  -->
+        <script>
+            $(document).ready(function() {
+                $('#Material_code').on('keyup', function() {
+                    var query = $(this).val().toLowerCase(); // ทำให้ query เป็นตัวพิมพ์เล็กทั้งหมด
+        
+                    // ค้นหาเฉพาะคอลัมน์ที่ต้องการ (เช่น คอลัมน์ที่ 1)
+                    $('#table tbody tr').filter(function() {
+                        var columnText = $(this).find('td:nth-child(3)').text().toLowerCase(); // เลือก td ในคอลัมน์แรก
+                        // แสดงหรือซ่อนแถวตามค่าที่ค้นหา
+                        $(this).toggle(columnText.indexOf(query) > -1);
+                    });
+                });
+            });
+        </script>
+
+        <!-- search Material_Name  -->
+        <script>
+            $(document).ready(function() {
+                $('#Material_name').on('keyup', function() {
+                    var query = $(this).val().toLowerCase(); // ทำให้ query เป็นตัวพิมพ์เล็กทั้งหมด
+        
+                    // ค้นหาเฉพาะคอลัมน์ที่ต้องการ (เช่น คอลัมน์ที่ 1)
+                    $('#table tbody tr').filter(function() {
+                        var columnText = $(this).find('td:nth-child(4)').text().toLowerCase(); // เลือก td ในคอลัมน์แรก
+                        // แสดงหรือซ่อนแถวตามค่าที่ค้นหา
+                        $(this).toggle(columnText.indexOf(query) > -1);
+                    });
+                });
+            });
+        </script>
+
+        <!-- search Spec  -->
+        <script>
+            $(document).ready(function() {
+                $('#Spec').on('keyup', function() {
+                    var query = $(this).val().toLowerCase(); // ทำให้ query เป็นตัวพิมพ์เล็กทั้งหมด
+        
+                    // ค้นหาเฉพาะคอลัมน์ที่ต้องการ (เช่น คอลัมน์ที่ 1)
+                    $('#table tbody tr').filter(function() {
+                        var columnText = $(this).find('td:nth-child(5)').text().toLowerCase(); // เลือก td ในคอลัมน์แรก
+                        // แสดงหรือซ่อนแถวตามค่าที่ค้นหา
+                        $(this).toggle(columnText.indexOf(query) > -1);
                     });
                 });
             });
