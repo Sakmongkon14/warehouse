@@ -344,12 +344,13 @@
 
     /* input */
     .input-style {
-        padding: 10px;
+        padding: 5px;
         border: 2px solid #ccc;
         border-radius: 5px;
-        font-size: 16px;
+        font-size: 10px;
         color: #555;
         outline: none;
+    
     }
 
     .input-style:focus {
@@ -357,11 +358,19 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
+
+
+
+
+
+
     .hi {
         display: flex;
         align-items: baseline;
         gap: 10px;
     }
+
+
 
     /* Export*/
     .button {
@@ -386,6 +395,7 @@
         transform: translateX(22px);
         color: #fff;
         font-weight: 600;
+        font-size: 14px;
     }
 
     .button .button__icon {
@@ -440,13 +450,14 @@
     }
 
     /* ปรับการจัดตำแหน่งข้อความในตาราง */
-    .table th,
     .table td {
+        background-color: #ffffff33;
+        padding: 0px;
         text-align: center;
     }
 
     .table-wrapper {
-        height: 650px;
+        height: 660px;
         box-shadow: 0 2px 5px #8494a4;
         background: white;
         padding: 20px;
@@ -460,7 +471,7 @@
         align-items: baseline;
         font-family: sans-serif;
         width: 100%;
-        height: 550px;
+        height: 590px;
         overflow-y: auto;
         border: 1px solid #ccc;
     }
@@ -475,10 +486,12 @@
         z-index: 2;
         /* ให้หัวคอลัมน์อยู่ด้านบนของเนื้อหา */
         text-align: center;
-        padding: 15px;
-        font-size: 14px;
+        padding: 7px;
+        font-size: 10px;
     }
-
+    .table>:not(:last-child)>:last-child>* {
+        border-bottom-color: #fff;
+    }
 
     .texeadd {
         display: flex;
@@ -503,11 +516,6 @@
         font-size: 14px;
     }
 
-    .table td {
-        background-color: #ffffff33;
-        padding: 15px;
-        text-align: center;
-    }
 
     .table thead {
         background-color: #55608f;
@@ -519,10 +527,6 @@
         /* สีพื้นหลังเมื่อมีการ hover แถว */
     }
 </style>
-
-
-
-
 
 <body>
 
@@ -580,9 +584,7 @@
         </nav>
 </div>
 
-    
-
-    <div class="sidebar open">
+    <div class="sidebar">
         <div class="logo_details">
             <div class="logo_name">GTN</div>
             <i class="bx bx-menu" id="btn"></i>
@@ -654,12 +656,10 @@
                 <div class="texeadd">
                     <div class="hi">
                         <h3 class="mb-4">วัสดุคงคลัง</h3>
-                        <input placeholder="กรุณากรอกข้อมูล" class="input-style" type="text" id="search"
-                            name="search">
                     </div>
 
                     <button class="button" type="button" aria-label="Export" id="exportButton">
-                        <span class="button__text">Export</span>
+                        <span class="button__text" style="font-size: 9px;">Export visible data</span>
                         <span class="button__icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35"
                                 id="bdd05811-e15d-428c-bb53-8661459f9307" data-name="Layer 2" class="svg">
@@ -680,60 +680,58 @@
                 <div class="table-container ">
                     <table class="table" id="table">
                         <thead style="font-size: 12px; text-align:center">
+                            <tr>
+                                <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                    Refcode
+                                    <div
+                                        style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                        <input class="input-style" type="text" id="searchRefcode" name="searchRefcode"
+                                            style="width: 70px; height: 25px; padding: 5px; font-size: 12px;">
+                                    </div>
+                                </th>
+    
+                                <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                    Droppoint
+                                    <div
+                                        style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                        <input class="input-style" type="text" id="Droppoint" name="Droppoint"
+                                            style="width: 100px; height: 25px; padding: 5px; font-size: 12px;">
+                                    </div>
+                                </th>
+    
+                                <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                    Material_code
+                                    <div
+                                        style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                        <input class="input-style" type="text" id="Material_code" name="Material_code"
+                                            style="width: 140px; height: 25px; padding: 5px; font-size: 12px;">
+                                    </div>
+                                </th>
+    
+                                <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
+                                    Material_name
+                                    <div
+                                        style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                        <input class="input-style" type="text" id="Material_name" name="Material_name"
+                                            style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
+                                    </div>
+                                </th>
+    
+                                <th scope="background-color: skyblue;"
+                                    style="text-align: center; vertical-align: middle;">Spec
+                                    <div
+                                        style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+                                        <input class="input-style" type="text" id="Spec" name="Spec"
+                                            style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
+                                    </div>
+                                </th>
 
-
-                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
-                                Refcode
-                                <div
-                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-                                    <input class="input-style" type="text" id="searchRefcode" name="searchRefcode"
-                                        style="width: 70px; height: 25px; padding: 5px; font-size: 12px;">
-                                </div>
-                            </th>
-
-                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
-                                Droppoint
-                                <div
-                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-                                    <input class="input-style" type="text" id="Droppoint" name="Droppoint"
-                                        style="width: 100px; height: 25px; padding: 5px; font-size: 12px;">
-                                </div>
-                            </th>
-
-                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
-                                Material_code
-                                <div
-                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-                                    <input class="input-style" type="text" id="Material_code" name="Material_code"
-                                        style="width: 140px; height: 25px; padding: 5px; font-size: 12px;">
-                                </div>
-                            </th>
-
-                            <th scope="background-color: skyblue;" style="text-align: center; vertical-align: middle;">
-                                Material_name
-                                <div
-                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-                                    <input class="input-style" type="text" id="Material_name" name="Material_name"
-                                        style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
-                                </div>
-                            </th>
-
-                            <th scope="background-color: skyblue;"
-                                style="text-align: center; vertical-align: middle;">Spec
-                                <div
-                                    style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-                                    <input class="input-style" type="text" id="Spec" name="Spec"
-                                        style="width: 120px; height: 25px; padding: 5px; font-size: 12px;">
-                                </div>
-                            </th>
-
-
-
-                            <th scope="background-color: skyblue">Unit</th>
-                            <th scope="background-color: skyblue">Quantity</th>
-                            <th scope="background-color: skyblue">Withdraw</th>
-                            <th scope="background-color: skyblue">Available</th>
-                            </tr>
+                                <th scope="background-color: skyblue">Unit</th>
+                                <th scope="background-color: skyblue">Quantity</th>
+                                <th scope="background-color: skyblue">Withdraw</th>
+                                <th scope="background-color: skyblue">Available</th>
+                                </tr>
+                            
                         </thead>
 
                         <tbody>
@@ -756,12 +754,9 @@
                             @endforeach
                         </tbody>
                     </table>
-
-                </div>
             </div>
         </div>
 
-        <!-- Search ทั้งหมด -->
         <script>
             $(document).ready(function() {
                 $('#search').on('keyup', function() {
@@ -771,12 +766,38 @@
                     $('#table tbody tr').filter(function() {
                         var rowText = $(this).text()
                             .toLowerCase(); // รวมข้อความทั้งหมดในแถวให้เป็นตัวพิมพ์เล็ก
+
                         // แสดงหรือซ่อนแถวตามที่ค่าจากช่องค้นหาพบ
                         $(this).toggle(rowText.indexOf(query) > -1);
                     });
                 });
             });
         </script>
+
+        <script>
+            window.onload = function() {
+                const sidebar = document.querySelector(".sidebar");
+                const closeBtn = document.querySelector("#btn");
+
+                closeBtn.addEventListener("click", function() {
+                    sidebar.classList.toggle("open");
+                });
+            }
+        </script>
+
+        <script>
+            // ฟังก์ชันส่งออก export
+            document.getElementById('exportButton').addEventListener('click', function() {
+                var wb = XLSX.utils.book_new();
+                var ws = XLSX.utils.table_to_sheet(document.getElementById('table'));
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'Balance_data.xlsx');
+            });
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 
         <!-- search Refcode  -->
         <script>
@@ -857,29 +878,6 @@
                 });
             });
         </script>
-
-        <script>
-            window.onload = function() {
-                const sidebar = document.querySelector(".sidebar");
-                const closeBtn = document.querySelector("#btn");
-
-                closeBtn.addEventListener("click", function() {
-                    sidebar.classList.toggle("open");
-                });
-            }
-        </script>
-
-        <script>
-            // ฟังก์ชันส่งออก export
-            document.getElementById('exportButton').addEventListener('click', function() {
-                var wb = XLSX.utils.book_new();
-                var ws = XLSX.utils.table_to_sheet(document.getElementById('table'));
-                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-                XLSX.writeFile(wb, 'Balance_data.xlsx');
-            });
-        </script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
 </body>
