@@ -1019,54 +1019,72 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
         <script>
-            let timeout;
-            $(document).ready(function() {
-                // Hide Submit button initially
-                $('#submitButton').hide();
+    let timeout;
+    $(document).ready(function() {
+        // ซ่อนปุ่ม Submit ตอนเริ่มต้น
+        $('#submitButton').hide();
+        $('#addButton').hide();
+        
+        // ตรวจสอบค่าที่พิมพ์ใน input #refcode
+        $('#refcode').on('input', function() {
+            clearTimeout(timeout); // ลบ timeout เดิมก่อน
+            let refcode = $(this).val().trim(); // รับค่าที่ผู้ใช้พิมพ์และลบช่องว่าง
 
-                $('#refcode').on('input', function() {
-                    clearTimeout(timeout); // Clear the previous timeout
+            console.log('Input value:', refcode); // Debug: ดูค่าที่ผู้ใช้พิมพ์
 
-                    let refcode = $(this).val().trim();
-                    console.log('Input value:', refcode); // Debugging line
-
-                    timeout = setTimeout(function() {
-                        if (refcode) {
-                            $.ajax({
-                                url: "{{ route('check.refcode') }}",
-                                method: "GET",
-                                data: {
-                                    refcode: refcode
-                                },
-                                success: function(response) {
-                                    if (response.exists) {
-                                        // Show success message and ADD + Submit buttons
-                                        $('#refcode-message').text("Description: " +
-                                                response.description)
-                                            .css("color", "green")
-                                            .show();
-                                        $('#addButton').show(); // Show the ADD button
-                                        $('#submitButton').show(); // Show the Submit button
-                                    } else {
-                                        // Show not found message and hide ADD + Submit buttons
-                                        $('#refcode-message').text("Refcode not found.")
-                                            .css("color", "red")
-                                            .show();
-                                        $('#addButton').hide(); // Hide the ADD button
-                                        $('#submitButton').hide(); // Hide the Submit button
-                                    }
-                                }
-                            });
-                        } else {
-                            // Clear messages and hide ADD + Submit buttons when input is empty
-                            $('#refcode-message').text('').hide(); // Clear and hide the message
-                            $('#addButton').hide(); // Hide the ADD button
-                            $('#submitButton').hide(); // Hide the Submit button
+            timeout = setTimeout(function() {
+                if (refcode) {
+                    // เรียก Ajax เพื่อตรวจสอบ refcode ในระบบ
+                    $.ajax({
+                        url: "{{ route('check.refcode') }}", // URL ที่ใช้ตรวจสอบ
+                        method: "GET",
+                        data: {
+                            refcode: refcode // ส่งค่า refcode ไปยัง server
+                        },
+                        success: function(response) {
+                            if (response.exists) {
+                                // หากพบ refcode
+                                $('#refcode-message').text("Description: " +
+                                        response.description) // แสดงคำอธิบาย
+                                    .css("color", "green") // ข้อความสีเขียว
+                                    .show();
+                                $('#addButton').show(); // แสดงปุ่ม ADD
+                            } else {
+                                // หากไม่พบ refcode
+                                $('#refcode-message').text("Refcode not found.") // แสดงข้อความว่าไม่พบ
+                                    .css("color", "red") // ข้อความสีแดง
+                                    .show();
+                                $('#addButton').hide(); // ซ่อนปุ่ม ADD
+                                $('#submitButton').hide(); // ซ่อนปุ่ม Submit
+                            }
                         }
-                    }, 300); // Adjust timeout as needed
-                });
-            });
-        </script>
+                    });
+                } else {
+                    // หาก input ว่างเปล่า
+                    $('#refcode-message').text('').hide(); // ซ่อนข้อความแจ้งเตือน
+                    $('#addButton').hide(); // ซ่อนปุ่ม ADD
+                    $('#submitButton').hide(); // ซ่อนปุ่ม Submit
+                }
+            }, 300); // ตั้งเวลา delay (ms) สำหรับการตรวจสอบ
+        });
+
+        // สร้าง MutationObserver เพื่อตรวจสอบการเปลี่ยนแปลงใน #rowsContainer
+        const rowsObserver = new MutationObserver(function(mutationsList, observer) {
+            // ตรวจสอบว่ามี <tr> ภายใน <tbody> หรือไม่
+            if ($('#rowsContainer tr').length > 0) {
+                $('#submitButton').show(); // แสดงปุ่ม Submit
+            } else {
+                $('#submitButton').hide(); // ซ่อนปุ่ม Submit หากไม่มี <tr>
+            }
+        });
+
+        // เริ่มการเฝ้าดูการเปลี่ยนแปลงใน #rowsContainer
+        rowsObserver.observe(document.getElementById('rowsContainer'), {
+            childList: true, // เฝ้าดูการเปลี่ยนแปลงของลูก (child nodes)
+        });
+    });
+</script>
+
 
 
         <!-- Search Show Data -->
