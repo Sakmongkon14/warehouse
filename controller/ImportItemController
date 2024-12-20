@@ -5,11 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RealRashid\SweetAlert\Facades\Alert;
 
 use function Laravel\Prompts\table;
 
 class ImportItemController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+    
 public function index()
     {
         return view('import_item');
@@ -51,6 +57,7 @@ public function material()
     
 public function additem(Request $request)
     {
+        
         // รับข้อมูลจาก request
         $materialCodes = $request->materialCode ?? [];
         $refcodenames = $request->refcodename ?? [];
@@ -82,29 +89,29 @@ public function additem(Request $request)
 
         $currentDate = $date[0];
         $id = "IN";
+        
+    for ($i = 0; $i < $maxCount; $i++) {
+
         $lastTransactionId = DB::table('import_add')
-                                ->whereDate('date',$currentDate)
+                                ->whereDate('date', $date[$i]) // ตรวจสอบจากวันที่ปัจจุบัน
                                 ->orderBy('transaction','desc')
                                 ->value('transaction');
 
-if ($lastTransactionId) { 
-        $lastIdNumber = (int) substr($lastTransactionId, 3); // Extract numeric part 
-        $newIdNumber = $lastIdNumber + 1; 
-    } else { 
-        $newIdNumber = 1; // Start from 1 if no transaction_id found for the date 
-    } 
-    $newTransactionId = $id . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+        if ($lastTransactionId) { 
+            $lastIdNumber = (int) substr($lastTransactionId, -3); // ดึงเฉพาะเลขท้าย 3 หลัก
+            $newIdNumber = $lastIdNumber + 1; 
+        } else { 
+            $newIdNumber = 1; // ถ้าไม่พบ Transaction ID ให้เริ่มจาก 1
+        } 
 
+       // สร้าง Transaction ID ใหม่ 
+        $newTransactionId = $id . str_replace('-', '', $currentDate) . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
 
-    for ($i = 0; $i < $maxCount; $i++) {
-
-    // ใช้ str_pad เพื่อให้เลข counter มีความยาว 3 หลัก เช่น 001, 002, 003
-    $transaction = $id . str_pad($counter, 3, '0', STR_PAD_LEFT);
-    
     // คำนวณ available ทันที
     $quantity = $request->Amout[$i] ?? 0;
     $withdraw = $quantities_with[$i] ?? null ?? 0;
     $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
+    
 
     // เตรียมข้อมูลสำหรับ insert ลงใน import_add
     $data[] = [
@@ -135,8 +142,7 @@ if ($lastTransactionId) {
         'available' => $available // ใส่ available ที่คำนวณไว้แล้ว
     ];
 }
-
-//dd($data);
+    //dd($data,$lastTransactionId,$lastIdNumber,$newIdNumber );
 
 // Insert data ลงใน table import_add
 DB::table('import_add')->insert($data);
@@ -168,7 +174,7 @@ foreach ($sum as $sumItem) {
     }
 }
 
-return redirect('/import')->with('success', 'Data processed and available calculated successfully!');
+return redirect('/import')->with('success', 'ทำรายการสำเร็จ !');
 
 }
 
@@ -604,6 +610,8 @@ public function checkImport_add(Request $request)
     }
 }
 
+
+
 public function addWithdraw(Request $request)
 {
     // รับข้อมูลจาก Request
@@ -613,56 +621,56 @@ public function addWithdraw(Request $request)
     $material_codes = $request->material_code_import ?? [];
     $material_names = $request->material_name_import ?? [];
     $droppoints = $request->droppoint ?? [];
-    $quantities_before = $request->quantity ?? [];
     $quantities_with = $request->Amout ?? [];
     $spec = $request->specSize ?? []; 
     $unit = $request->unit ?? [];
     $avai = $request->available ?? [];
 
-    // ตรวจสอบว่าข้อมูลมีจำนวนเท่ากันในทุก array
-    $rowCount = count($refcodes_with); // นับจำนวน rows จาก array หนึ่งตัว
+    $rowCount = count($refcodes_with); // จำนวน rows ทั้งหมด
     $data = [];
     $sum = [];
-
-    // Function to generate transaction_id 
-    $currentDate = $dates[0]; 
-    $transactionIdBase = 'OUT'; 
-    $lastTransactionId = DB::table('withdraw') 
-                            ->whereDate('date', $currentDate) 
-                            ->orderBy('transaction_id', 'desc') 
-                            ->value('transaction_id'); 
-    
-    if ($lastTransactionId) { 
-        $lastIdNumber = (int) substr($lastTransactionId, 3); // Extract numeric part 
-        $newIdNumber = $lastIdNumber + 1; 
-    } else { 
-        $newIdNumber = 1; // Start from 1 if no transaction_id found for the date 
-    } 
-    $newTransactionId = $transactionIdBase . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+    $transactionIdBase = 'OUT';
 
     for ($i = 0; $i < $rowCount; $i++) {
+        // ดึงวันที่ของแถวนี้
+        $currentDate = $dates[$i] ?? date('Y-m-d');
 
-        $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
-
+        // คำนวณ total
+        $total = ($avai[$i] ?? 0) - ($quantities_with[$i] ?? 0);
+    
+        // ดึง Transaction ID ล่าสุดสำหรับวันที่นี้
+        $lastTransactionId = DB::table('withdraw')
+            ->whereDate('date', $currentDate)
+            ->where('transaction_id', 'LIKE', $transactionIdBase . str_replace('-', '', $currentDate) . '%')
+            ->orderBy('transaction_id', 'desc')
+            ->value('transaction_id');
+    
+        // ตรวจสอบและสร้าง Transaction ID ใหม่
+        if ($lastTransactionId) { 
+            $lastIdNumber = (int) substr($lastTransactionId, -3); // เอาเลขท้าย 3 หลัก
+            $newIdNumber = $lastIdNumber + 1; 
+        } else { 
+            $newIdNumber = 1; // ถ้าไม่มี Transaction ID ให้เริ่มที่ 1
+        }
+    
+        // สร้าง Transaction ID ใหม่
+        $newTransactionId = $transactionIdBase . str_replace('-', '', $currentDate) . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+    
+        // เพิ่มข้อมูลใน array $data
         $data[] = [
-            'date' => $dates[0] ?? null, // สมมติว่า date มีค่าเดียว
             'refcode_before' => $refcodes_before[0] ?? null,
             'refcode_with' => $refcodes_with[$i] ?? null,
             'material_code' => $material_codes[$i] ?? null,
             'material_name' => $material_names[$i] ?? null,
             'spec' => $spec[$i] ?? null,
             'droppoint' => $droppoints[$i] ?? null,
-            'transaction_id' => $newTransactionId,            
+            'date' => $currentDate,
+            'transaction_id' => $newTransactionId,
             'quantity_before' => $avai[$i] ?? null,
             'quantity_with' => $quantities_with[$i] ?? null,
         ];
-    }
-
-    for ($i = 0; $i < $rowCount; $i++){
-
-        // คำนวณ total
-        $total = ($avai[$i] ??  0) - ($quantities_with[$i] ?? 0);
-
+    
+        // เตรียมข้อมูลสำหรับ table sum
         $sum[] = [
             'refcode' => $refcodes_with[$i] ?? null,
             'material_code' => $material_codes[$i] ?? null,
@@ -674,11 +682,13 @@ public function addWithdraw(Request $request)
             'withdraw' => $quantities_with[$i] ?? 0,
             'available' => $total,
         ];
-    }
+    };
 
-    // Use a transaction to ensure data consistency
+   // dd($data);
+
+    // ใช้ transaction สำหรับการบันทึกข้อมูล
     DB::transaction(function () use ($data, $sum) {
-    DB::table('withdraw')->insert($data);
+        DB::table('withdraw')->insert($data);
 
         foreach ($sum as $sumItem) {
             $existingSum = DB::table('sum')
@@ -690,7 +700,7 @@ public function addWithdraw(Request $request)
 
             if ($existingSum) {
                 $newWithdraw = ($existingSum->withdraw ?? 0) + $sumItem['withdraw'];
-                
+
                 DB::table('sum')
                     ->where('id', $existingSum->id)
                     ->update([
@@ -703,8 +713,13 @@ public function addWithdraw(Request $request)
         }
     });
 
-    return redirect('/withdraw')->with('success', 'Data processed and updated successfully!');
+    return redirect('/withdraw')->with('success', 'ทำรายการเบิกของสำเร็จ !');
 }
+
+
+
+
+
 
 public function summary(Request $request){
 
@@ -736,5 +751,3 @@ public function search(Request $request)
 }
 
 
-
-    
