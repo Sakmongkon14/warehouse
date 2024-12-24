@@ -57,30 +57,30 @@ public function material()
     
 public function additem(Request $request)
     {
-        
+
         // รับข้อมูลจาก request
         $materialCodes = $request->materialCode ?? [];
         $refcodenames = $request->refcodename ?? [];
         $droppoint = $request->droppoint ?? [];
         $date = $request->date ?? [];
-    
+
         // ตรวจสอบจำนวนสูงสุดของ materialCode, refcodename, droppoint, และ date
         $maxCount = max(count($materialCodes), count($refcodenames), count($droppoint), count($date));
-    
+
         // เติม refcodenames, droppoint และ date ให้มีจำนวนเท่ากันกับ materialCodes
         $refcodenames = array_pad($refcodenames, $maxCount, end($refcodenames));
         $droppoint = array_pad($droppoint, $maxCount, end($droppoint));
         $date = array_pad($date, $maxCount, end($date));
-    
+
         // ตรวจสอบค่า session 'transaction_counter', ถ้าไม่มีให้ตั้งค่าเป็น 1
         $counter = session('transaction_counter', 1); // เริ่มต้นจาก 1 หากไม่มีค่าใน session
-    
+
         // เพิ่มค่า counter ทุกครั้งที่บันทึก
         $counter++; // เพิ่มค่า counter ก่อนที่จะใช้ในการบันทึก
-    
+
         // บันทึกค่า counter ใหม่ลงใน session
         session(['transaction_counter' => $counter]); // เก็บค่า counter ใหม่ใน session
-    
+
         // สร้างอาเรย์ของข้อมูลที่ต้องการแทรก
         $data = [];
         $sum = [];
@@ -89,94 +89,96 @@ public function additem(Request $request)
 
         $currentDate = $date[0];
         $id = "IN";
+
+        for ($i = 0; $i < $maxCount; $i++) {
+
+            $lastTransactionId = DB::table('import_add')
+                ->whereDate('date', $date[$i]) // ตรวจสอบจากวันที่ปัจจุบัน
+                ->orderBy('transaction', 'desc')
+                ->value('transaction');
+
+            if ($lastTransactionId) {
+                $lastIdNumber = (int) substr($lastTransactionId, -3); // ดึงเฉพาะเลขท้าย 3 หลัก
+                $newIdNumber = $lastIdNumber + 1;
+            } else {
+                $newIdNumber = 1; // ถ้าไม่พบ Transaction ID ให้เริ่มจาก 1
+            }
+
+            // สร้าง Transaction ID ใหม่ 
+            $newTransactionId = $id . str_replace('-', '', $currentDate) . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+
+            // คำนวณ available ทันที
+            $quantity = $request->Amout[$i] ?? 0;
+            $withdraw = $quantities_with[$i] ?? null ?? 0;
+            $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
+
+
+            // เตรียมข้อมูลสำหรับ insert ลงใน import_add
+            $data[] = [
+                'refcode_import' => $refcodenames[$i],
+                'droppoint_import' => $droppoint[$i],
+                'material_code_import' => $materialCodes[$i],
+                'material_name_import' => $request->materialName[$i] ?? '',
+                'spec_size_import' => $request->specSize[$i] ?? '',
+                'brand' => $request->brand[$i] ?? '',
+                'unit' => $request->unit[$i] ?? '',
+                'quantity' => $quantity,
+                'remark' => $request->Remark[$i] ?? '',
+                'date' => $date[$i],
+                'transaction' => $newTransactionId,
+                'import_quantity' => $maxCount
+            ];
+
+            // เตรียมข้อมูลสำหรับตรวจสอบและอัปเดตใน sum
+            $sum[] = [
+                'refcode' => $refcodenames[$i],
+                'droppoint' => $droppoint[$i],
+                'material_code' => $materialCodes[$i],
+                'material_name' => $request->materialName[$i] ?? '',
+                'spec' => $request->specSize[$i] ?? '',
+                'unit' => $request->unit[$i] ?? '',
+                'quantity' => $quantity,
+                'withdraw' => $withdraw,
+                'available' => $available // ใส่ available ที่คำนวณไว้แล้ว
+            ];
+        }
         
-    for ($i = 0; $i < $maxCount; $i++) {
+        //dd($data,$lastTransactionId,$lastIdNumber,$newIdNumber );
 
-        $lastTransactionId = DB::table('import_add')
-                                ->whereDate('date', $date[$i]) // ตรวจสอบจากวันที่ปัจจุบัน
-                                ->orderBy('transaction','desc')
-                                ->value('transaction');
+        //dd($materialCodes, $refcodenames, $droppoint, $date);
 
-        if ($lastTransactionId) { 
-            $lastIdNumber = (int) substr($lastTransactionId, -3); // ดึงเฉพาะเลขท้าย 3 หลัก
-            $newIdNumber = $lastIdNumber + 1; 
-        } else { 
-            $newIdNumber = 1; // ถ้าไม่พบ Transaction ID ให้เริ่มจาก 1
-        } 
+        // Insert data ลงใน table import_add
+        DB::table('import_add')->insert($data);
 
-       // สร้าง Transaction ID ใหม่ 
-        $newTransactionId = $id . str_replace('-', '', $currentDate) . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
+        // ตรวจสอบและอัปเดตข้อมูลใน table sum
+        foreach ($sum as $sumItem) {
+            $existingSum = DB::table('sum')
+                ->where('refcode', $sumItem['refcode'])
+                ->where('droppoint', $sumItem['droppoint'])
+                ->where('material_code', $sumItem['material_code'])
+                ->where('material_name', $sumItem['material_name'])
+                ->where('spec', $sumItem['spec'])
+                ->first();
 
-    // คำนวณ available ทันที
-    $quantity = $request->Amout[$i] ?? 0;
-    $withdraw = $quantities_with[$i] ?? null ?? 0;
-    $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
-    
+            if ($existingSum) {
+                // ถ้ามีข้อมูลตรงกัน ให้อัปเดต quantity และ available
+                $newQuantity = $existingSum->quantity + $sumItem['quantity'];
+                $newAvailable = $existingSum->available + $sumItem['available']; // เพิ่ม available ใหม่
 
-    // เตรียมข้อมูลสำหรับ insert ลงใน import_add
-    $data[] = [
-        'refcode_import' => $refcodenames[$i],
-        'droppoint_import' => $droppoint[$i],
-        'material_code_import' => $materialCodes[$i],
-        'material_name_import' => $request->materialName[$i] ?? '',
-        'spec_size_import' => $request->specSize[$i] ?? '',
-        'brand' => $request->brand[$i] ?? '',
-        'unit' => $request->unit[$i] ?? '',
-        'quantity' => $quantity,
-        'remark' => $request->Remark[$i] ?? '',
-        'date' => $date[$i],
-        'transaction' => $newTransactionId,
-        'import_quantity' => $maxCount
-    ];
+                DB::table('sum')
+                    ->where('id', $existingSum->id)
+                    ->update([
+                        'quantity' => $newQuantity,
+                        'available' => $newAvailable
+                    ]);
+            } else {
+                // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
+                DB::table('sum')->insert($sumItem);
+            }
+        }
 
-    // เตรียมข้อมูลสำหรับตรวจสอบและอัปเดตใน sum
-    $sum[] = [
-        'refcode' => $refcodenames[$i],
-        'droppoint' => $droppoint[$i],
-        'material_code' => $materialCodes[$i],
-        'material_name' => $request->materialName[$i] ?? '',
-        'spec' => $request->specSize[$i] ?? '',
-        'unit' => $request->unit[$i] ?? '',
-        'quantity' => $quantity,
-        'withdraw' => $withdraw,
-        'available' => $available // ใส่ available ที่คำนวณไว้แล้ว
-    ];
-}
-    //dd($data,$lastTransactionId,$lastIdNumber,$newIdNumber );
-
-// Insert data ลงใน table import_add
-DB::table('import_add')->insert($data);
-
-// ตรวจสอบและอัปเดตข้อมูลใน table sum
-foreach ($sum as $sumItem) {
-    $existingSum = DB::table('sum')
-        ->where('refcode', $sumItem['refcode'])
-        ->where('droppoint', $sumItem['droppoint'])
-        ->where('material_code', $sumItem['material_code'])
-        ->where('material_name', $sumItem['material_name'])
-        ->where('spec', $sumItem['spec'])
-        ->first();
-
-    if ($existingSum) {
-        // ถ้ามีข้อมูลตรงกัน ให้อัปเดต quantity และ available
-        $newQuantity = $existingSum->quantity + $sumItem['quantity'];
-        $newAvailable = $existingSum->available + $sumItem['available']; // เพิ่ม available ใหม่
-
-        DB::table('sum')
-            ->where('id', $existingSum->id)
-            ->update([
-                'quantity' => $newQuantity,
-                'available' => $newAvailable
-            ]);
-    } else {
-        // ถ้าไม่มีข้อมูลตรงกัน ให้แทรกใหม่
-        DB::table('sum')->insert($sumItem);
+        return redirect('/import')->with('success', 'ทำรายการสำเร็จ !');
     }
-}
-
-return redirect('/import')->with('success', 'ทำรายการสำเร็จ !');
-
-}
 
 //import  Refcode
 public function import_refcode(Request $request) {
