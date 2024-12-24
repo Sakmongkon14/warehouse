@@ -820,6 +820,7 @@
                                 <table class="table" id="showDataTable">
                                     <thead>
                                         <tr>
+                                            <th scope="col">Edit</th>
                                             <th scope="col">Refcode</th>
                                             <th scope="col">Droppoint</th>
                                             <th scope="col">Material Code</th>
@@ -837,6 +838,9 @@
                                     <tbody>
                                         @foreach ($import_add as $item)
                                             <tr style="font-size: 10px; text-align:center">
+
+                                                <td><a href=" {{ route('edit_import', $item->id) }}"><i class='fas fa-pen' style='font-size:10px;color:red'></i></i></a></td>
+
                                                 <td>{{ $item->refcode_import }}</td>
 
                                                 @foreach ($droppoint as $no)
