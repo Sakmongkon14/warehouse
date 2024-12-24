@@ -750,6 +750,95 @@ public function search(Request $request)
 
     return response()->json($results); // ส่งข้อมูลกลับในรูป JSON
 }
+
+ //หน้า  Edit ของนำเข้า
+    public function edit($id)
+    {
+        // ดึงข้อมูลจากตาราง import_add โดยกรองข้อมูลตาม id
+        $edit = DB::table('import_add')
+            ->where('id', $id)  // ใช้ where แทน wheres
+            ->first();  // ดึงข้อมูลแถวเดียวตาม id
+
+        // ส่งข้อมูลไปยัง view 'edit'
+        return view('edit', compact('edit'));
+    }
+
+    public function saveEdit(Request $request)
+    {
+        // ตรวจสอบความถูกต้องของข้อมูลที่รับเข้ามา
+        $request->validate(
+            [
+                'quantity' => 'required',
+                'remark' => 'required'
+            ],
+            [
+                'quantity.required' => 'กรุณากรอก quantity',
+                'remark.required' => 'กรุณากรอก remark'
+            ]
+        );
+
+        $quantity = $request->quantity;
+        $withdraw = $quantities_with ?? null ?? 0; //หากไม่มีค่าการถอนให้ตั้งค่าเป็น 0
+        $available = $quantity - $withdraw; // คำนวณจำนวนที่เหลืออยู่
+
+
+        // เตรียมข้อมูลสำหรับการ insert
+        $newData = [
+            'refcode_import' => $request->refcode,
+            'droppoint_import' => $request->Droppoint,
+            'material_code_import' => $request->material_code,
+            'material_name_import' => $request->material_name,
+            'spec_size_import' => $request->spec_size_import,
+            'brand' => $request->brand,
+            'unit' => $request->unit,
+            'quantity' => $request->quantity,
+            'remark' => $request->remark,
+            'date' => $request->date,
+            'transaction' => $request->transaction,
+            'import_quantity' => $request->import_quantity,
+        ];
+
+        $newSum =   [
+            'refcode' => $request->refcode,
+            'droppoint' => $request->Droppoint,
+            'material_code' => $request->material_code,
+            'material_name' => $request->material_name,
+            'spec' => $request->spec_size_import,
+            'unit' => $request->unit,
+            'quantity' => $request->quantity,
+            'withdraw' => $withdraw,
+            'avilable' => $available
+        ];
+
+       // dd($newData, $newSum, $withdraw);
+
+        // Insert ข้อมูลใหม่ในฐานข้อมูล
+        DB::table('import_add')->insert($newData);
+
+        // ตรวจสอบว่ามีข้อมูลในตาราง sum อยู่แล้วหรือไม่
+        $newSumImport = DB::table('sum')
+    ->where('refcode', $newData['refcode_import'])         // ค้นหาตาม refcode
+    ->where('droppoint', $newData['droppoint_import'])     // ค้นหาตาม droppoint
+    ->where('material_code', $newData['material_code_import']) // ค้นหาตาม material_code
+    ->where('material_name', $newData['material_name_import']) // ค้นหาตาม material_name
+    ->where('spec', $newData['spec_size_import'])          // ค้นหาตาม spec
+    ->first();
+
+
+            if ($newSumImport) {
+                $newQuantity = $newSumImport->quantity + $newData['quantity'];
+                $newAvailable = $newSumImport->available + $available; //เพิ่ม Available ใหม่
+
+                DB::table('sum')
+                    ->where('id', $newSumImport->id)
+                    ->update([
+                        'quantity' => $newQuantity,
+                        'available' => $newAvailable
+                    ]);
+            }; 
+             return redirect()->back()->with('success', 'แก้ไขสำเร็จ!');
+        }
+
 }
 
 
