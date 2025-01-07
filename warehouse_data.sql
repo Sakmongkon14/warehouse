@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 02, 2024 at 03:15 AM
+-- Generation Time: Jan 07, 2025 at 05:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,7 +45,25 @@ INSERT INTO `droppoint_import` (`id`, `droppoint`, `coordinate`, `contact`) VALU
 (27, 'Chonburi', '456', '123456789-4'),
 (28, 'UBON', 'UBON', '556677'),
 (29, 'LA', 'LA', '556677'),
-(30, 'SAKON NAKHON', 'POND', '0910603554');
+(30, 'SAKON NAKHON', 'POND', '0910603554'),
+(31, 'TRUE', 'GGK', '123456789'),
+(32, 'GTN', 'LOEI', '0895699709');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `failed_jobs`
+--
+
+CREATE TABLE `failed_jobs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `uuid` varchar(255) NOT NULL,
+  `connection` text NOT NULL,
+  `queue` text NOT NULL,
+  `payload` longtext NOT NULL,
+  `exception` longtext NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -56,7 +74,7 @@ INSERT INTO `droppoint_import` (`id`, `droppoint`, `coordinate`, `contact`) VALU
 CREATE TABLE `import_add` (
   `id` int(11) NOT NULL,
   `refcode_import` varchar(50) DEFAULT NULL,
-  `droppoint_import` int(11) DEFAULT NULL,
+  `droppoint_import` varchar(255) DEFAULT NULL,
   `material_code_import` varchar(50) DEFAULT NULL,
   `material_name_import` varchar(50) DEFAULT NULL,
   `spec_size_import` varchar(50) DEFAULT NULL,
@@ -65,8 +83,8 @@ CREATE TABLE `import_add` (
   `quantity` int(11) DEFAULT NULL,
   `remark` varchar(50) DEFAULT NULL,
   `date` date DEFAULT NULL,
-  `transaction` varchar(255) NOT NULL,
-  `import_quantity` int(11) NOT NULL
+  `transaction` varchar(255) DEFAULT NULL,
+  `import_quantity` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -74,30 +92,10 @@ CREATE TABLE `import_add` (
 --
 
 INSERT INTO `import_add` (`id`, `refcode_import`, `droppoint_import`, `material_code_import`, `material_name_import`, `spec_size_import`, `brand`, `unit`, `quantity`, `remark`, `date`, `transaction`, `import_quantity`) VALUES
-(321, '07-20-01', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 20, '', '2024-11-27', 'IN026', 1),
-(322, '07-20-01', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 10, '', '2024-11-27', 'IN027', 1),
-(323, '07-20-01', 25, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 60, '', '2024-11-27', 'IN028', 1),
-(324, '07-20-04', 28, 'P0200300301000', 'Breaker Nader', '1-Pole 16A', '', 'ea', 200, '', '2024-11-27', 'IN029', 1),
-(325, '07-20-01', 30, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 30, '', '2024-11-27', 'IN030', 2),
-(326, '07-20-01', 30, 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 30, '', '2024-11-27', 'IN030', 2),
-(327, '07-20-01', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 10, '', '2024-11-27', 'IN031', 1),
-(328, '07-20-01', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 20, 'ของมีปัญหา', '2024-11-27', 'IN032', 1),
-(329, '07-20-010036', 24, 'P0200200904000', 'Vinyl Wire End Cap GREEN (ปลอกหางปลา)', '16 SQ.MM.', '', 'ea', 10, '', '2024-11-28', 'IN002', 2),
-(330, '07-20-010036', 24, 'P0200100303000', 'Cable THW-A (อลูมิเนียม)', '1x35 SQ.MM.', '', 'เมตร', 10, '', '2024-11-28', 'IN002', 2),
-(331, '07-20-010036', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 22, '', '2024-11-28', 'IN003', 1),
-(332, '07-20-010036', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 20, '', '2024-11-20', 'IN004', 1),
-(333, '07-20-010021', 29, 'P0200300301000', 'Breaker Nader', '1-Pole 16A', '', 'ea', 100, '', '2024-11-28', 'IN005', 7),
-(334, '07-20-010021', 29, 'P0200100102015', 'Cable-THW', '19 SQ.MM.BLACK', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(335, '07-20-010021', 29, 'P0200100102000', 'Cable NYY', '3C*1.5 SQ.MM.', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(336, '07-20-010021', 29, 'P0200100207000', 'Cable-THW', '25 SQ.MM. BLACK', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(337, '07-20-010021', 29, 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(338, '07-20-010021', 29, 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(339, '07-20-010021', 29, 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 100, '', '2024-11-28', 'IN005', 7),
-(340, '07-21-010182', 28, 'P0200200301000', 'Copper Lugs One Hole หางปลา 1 รู', 'size 6 SQ.MM. Stud M6', '', 'ea', 50, '', '2024-11-29', 'IN006', 5),
-(341, '07-21-010182', 28, 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 50, '', '2024-11-29', 'IN006', 5),
-(342, '07-21-010182', 28, 'P0200200103000', 'C-Clamp', '70 Sqmm.', '', 'ea', 50, '', '2024-11-29', 'IN006', 5),
-(343, '07-21-010182', 28, 'P0200100101112', 'Cable-THW', '16 SQ.MM.BLACK', '', 'เมตร', 50, '', '2024-11-29', 'IN006', 5),
-(344, '07-21-010182', 28, 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 99, '', '2024-11-29', 'IN006', 5);
+(587, '38-24-050046', '24', 'P0200100103313', 'Cable-THW', '17 SQ.MM.BLACK', '', 'เมตร', 1000, '', '2025-01-07', 'IN20250107001', 3),
+(588, '38-24-050046', '24', 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', '', 'เมตร', 1000, '', '2025-01-07', 'IN20250107001', 3),
+(589, '38-24-050046', '24', 'P0200100103016', 'Cable-THW', '20 SQ.MM.BLACK', '', 'เมตร', 1000, '', '2025-01-07', 'IN20250107001', 3),
+(590, '38-24-050046', '24', 'P0200100103016', 'Cable-THW', '20 SQ.MM.BLACK', NULL, 'เมตร', -500, 'นำของเข้าเกิน', '2025-01-07', 'IN20250107001', 3);
 
 -- --------------------------------------------------------
 
@@ -231,7 +229,79 @@ INSERT INTO `material_code` (`id`, `material_c`, `material_n`, `spec_size`, `bra
 (344, 'P0200300301000', 'Breaker Nader', '1-Pole 16A', '', 'ea'),
 (345, '123456', '123456', '123456', '123456', '123456'),
 (346, 'sakmongkon', 'sakmongkon', 'sakmongkon', 'sakmongkon', 'sakmongkon'),
-(347, '123', 'sakmongkon', 'sakmongkon', 'sakmongkon', 'sakmongkon');
+(347, '123', 'sakmongkon', 'sakmongkon', 'sakmongkon', 'sakmongkon'),
+(348, '1158', '1158', '1158', '1158', '1158'),
+(349, 'P02001001011110', 'Cable-THW', '116 SQ.MM.BLACK', '', 'เมตร'),
+(350, 'P02001001033330', 'Cable-THW', '127 SQ.MM.BLACK', '', 'เมตร'),
+(351, 'P02001001055550', 'Cable-THW', '168 SQ.MM.BLACK', '', 'เมตร'),
+(352, 'P02001001020000', 'Cable-THW', '179 SQ.MM.BLACK', '', 'เมตร'),
+(353, 'P02001001030000', 'Cable-THW', '200 SQ.MM.BLACK', '', 'เมตร');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `migrations`
+--
+
+CREATE TABLE `migrations` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `migration` varchar(255) NOT NULL,
+  `batch` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+(1, '2014_10_12_000000_create_users_table', 1),
+(2, '2014_10_12_100000_create_password_reset_tokens_table', 1),
+(3, '2014_10_12_100000_create_password_resets_table', 1),
+(4, '2019_08_19_000000_create_failed_jobs_table', 1),
+(5, '2019_12_14_000001_create_personal_access_tokens_table', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `personal_access_tokens`
+--
+
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `tokenable_type` varchar(255) NOT NULL,
+  `tokenable_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `abilities` text DEFAULT NULL,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -26321,7 +26391,12 @@ INSERT INTO `refcode_data` (`id`, `refcode`, `description`) VALUES
 (26269, '38-24-050053', 'YLA7137'),
 (26270, '38-24-050054', 'YLA7225'),
 (26271, '38-24-050055', 'YLA7226'),
-(26272, '38-24-06', 'True CR NorthLower');
+(26272, '38-24-06', 'True CR NorthLower'),
+(26278, '1', 'SKN0446-U21 บ้านคลองซื่อ'),
+(26279, '2', 'SKN0447-U21 บ้านรุ่งรัตน์'),
+(26280, '3', 'BKK7942-U21 รามคำแหง 2 ซอย 7'),
+(26281, '4', 'BKK4416-U21 ซอยเยาวพา'),
+(26282, '5', 'BKK7386-U21 ถนน เฉลิมพระเกียรติ ร.9');
 
 -- --------------------------------------------------------
 
@@ -26332,14 +26407,14 @@ INSERT INTO `refcode_data` (`id`, `refcode`, `description`) VALUES
 CREATE TABLE `sum` (
   `id` int(11) NOT NULL,
   `refcode` varchar(255) DEFAULT NULL,
-  `droppoint` int(11) NOT NULL,
+  `droppoint` varchar(255) DEFAULT NULL,
   `material_code` varchar(255) DEFAULT NULL,
   `material_name` varchar(255) DEFAULT NULL,
   `spec` varchar(255) DEFAULT NULL,
   `unit` varchar(50) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL,
-  `withdraw` int(11) DEFAULT NULL,
-  `available` int(11) DEFAULT NULL
+  `quantity` int(11) DEFAULT NULL COMMENT 'จำนวนนำของเข้า',
+  `withdraw` int(11) DEFAULT NULL COMMENT 'จำนวนเบิกของ',
+  `available` int(11) DEFAULT NULL COMMENT 'จำนวนของที่สามารถเบิกได้'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -26347,23 +26422,34 @@ CREATE TABLE `sum` (
 --
 
 INSERT INTO `sum` (`id`, `refcode`, `droppoint`, `material_code`, `material_name`, `spec`, `unit`, `quantity`, `withdraw`, `available`) VALUES
-(153, '07-20-01', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 'เมตร', 60, 30, 30),
-(155, '07-20-01', 25, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 'เมตร', 60, 0, 60),
-(156, '07-20-04', 28, 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 'ea', 200, 80, 120),
-(157, '07-20-01', 30, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 'เมตร', 30, 0, 30),
-(158, '07-20-01', 30, 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', 'เมตร', 30, 30, 0),
-(159, '07-20-010036', 24, 'P0200200904000', 'Vinyl Wire End Cap GREEN (ปลอกหางปลา)', '16 SQ.MM.', 'ea', 10, 10, 0),
-(160, '07-20-010036', 24, 'P0200100303000', 'Cable THW-A (อลูมิเนียม)', '1x35 SQ.MM.', 'เมตร', 10, 0, 10),
-(161, '07-20-010036', 24, 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 'เมตร', 42, 15, 27),
-(162, '07-20-010021', 29, 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 'ea', 100, 0, 100),
-(163, '07-20-010021', 29, 'P0200100102015', 'Cable-THW', '19 SQ.MM.BLACK', 'เมตร', 100, 0, 100),
-(164, '07-20-010021', 29, 'P0200100102000', 'Cable NYY', '3C*1.5 SQ.MM.', 'เมตร', 100, 0, 100),
-(165, '07-20-010021', 29, 'P0200100207000', 'Cable-THW', '25 SQ.MM. BLACK', 'เมตร', 100, 0, 100),
-(166, '07-20-010021', 29, 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', 'เมตร', 300, 0, 300),
-(167, '07-21-010182', 28, 'P0200200301000', 'Copper Lugs One Hole หางปลา 1 รู', 'size 6 SQ.MM. Stud M6', 'ea', 50, 0, 50),
-(168, '07-21-010182', 28, 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', 'เมตร', 149, 0, 149),
-(169, '07-21-010182', 28, 'P0200200103000', 'C-Clamp', '70 Sqmm.', 'ea', 50, 0, 50),
-(170, '07-21-010182', 28, 'P0200100101112', 'Cable-THW', '16 SQ.MM.BLACK', 'เมตร', 50, 0, 50);
+(333, '38-24-050046', '24', 'P0200100103313', 'Cable-THW', '17 SQ.MM.BLACK', 'เมตร', 1000, 100, 900),
+(334, '38-24-050046', '24', 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', 'เมตร', 1000, 100, 900),
+(335, '38-24-050046', '24', 'P0200100103016', 'Cable-THW', '20 SQ.MM.BLACK', 'เมตร', 500, 0, 500);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `status` int(11) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) NOT NULL COMMENT 'pond1158',
+  `remember_token` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `status`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Sakmongkon Deelunchai', 'admin@gmail.com', NULL, '$2y$10$HOAcDjEuzhJoJ1IRxducOOlU8jGue.k1Z3lI78.8PQgF/bCco1vJC', NULL, '2024-12-18 19:49:28', '2024-12-18 19:49:28');
 
 -- --------------------------------------------------------
 
@@ -26373,35 +26459,29 @@ INSERT INTO `sum` (`id`, `refcode`, `droppoint`, `material_code`, `material_name
 
 CREATE TABLE `withdraw` (
   `id` int(11) NOT NULL,
-  `refcode_before` varchar(255) DEFAULT NULL,
-  `refcode_with` varchar(255) DEFAULT NULL,
+  `refcode_before` varchar(255) DEFAULT NULL COMMENT 'เบิกของจาก(From)',
+  `refcode_with` varchar(255) DEFAULT NULL COMMENT 'เบิกไปยัง(To)',
   `material_code` varchar(255) DEFAULT NULL,
   `material_name` varchar(255) DEFAULT NULL,
-  `spec` varchar(255) NOT NULL,
-  `droppoint` int(11) DEFAULT NULL,
+  `spec` varchar(255) DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `droppoint` varchar(255) DEFAULT NULL,
   `date` date DEFAULT NULL,
-  `quantity_before` int(11) DEFAULT NULL,
-  `quantity_with` int(11) DEFAULT NULL
+  `transaction_id` varchar(255) DEFAULT NULL,
+  `quantity_before` int(11) DEFAULT NULL COMMENT 'จำนวนของที่สามารถเบิกได้',
+  `quantity_with` int(11) DEFAULT NULL COMMENT 'จำนวนที่เบิก',
+  `remark` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `withdraw`
 --
 
-INSERT INTO `withdraw` (`id`, `refcode_before`, `refcode_with`, `material_code`, `material_name`, `spec`, `droppoint`, `date`, `quantity_before`, `quantity_with`) VALUES
-(130, '07-20-010002', '07-20-01', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-27', 20, 20),
-(131, '07-20-01', '07-20-01', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-27', 30, 20),
-(132, '07-20-010003', '07-20-01', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-28', 10, 5),
-(133, '07-20-01', '07-20-01', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-27', 5, 1),
-(134, '07-20-04', '07-20-01', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-27', 4, 4),
-(135, '07-20-01', '07-20-01', 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', 30, '2024-11-27', 30, 20),
-(136, '07-20-01', '07-20-04', 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 28, '2024-11-27', 200, 20),
-(137, '07-20-01', '07-20-01', 'P0200100105555', 'Cable-THW', '18 SQ.MM.BLACK', 30, '2024-11-27', 10, 10),
-(138, '07-20-01', '07-20-04', 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 28, '2024-11-27', 180, 20),
-(139, '07-20-01', '07-20-04', 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 28, '2024-11-28', 160, 20),
-(140, '07-20-010036', '07-20-010036', 'P0200200904000', 'Vinyl Wire End Cap GREEN (ปลอกหางปลา)', '16 SQ.MM.', 24, '2024-11-28', 10, 10),
-(141, '07-20-010021', '07-20-04', 'P0200300301000', 'Breaker Nader', '1-Pole 16A', 28, '2024-11-28', 140, 20),
-(142, '07-20-01', '07-20-010036', 'P0200100101111', 'Cable-THW', '16 SQ.MM.BLACK', 24, '2024-11-29', 42, 15);
+INSERT INTO `withdraw` (`id`, `refcode_before`, `refcode_with`, `material_code`, `material_name`, `spec`, `unit`, `droppoint`, `date`, `transaction_id`, `quantity_before`, `quantity_with`, `remark`) VALUES
+(345, '38-24-050046', '38-24-050046', 'P0200100103313', 'Cable-THW', '17 SQ.MM.BLACK', 'เมตร', 'LOEI', '2025-01-07', 'OUT20250107001', 1000, 100, NULL),
+(346, '38-24-050046', '38-24-050046', 'P0200100105514', 'Cable-THW', '18 SQ.MM.BLACK', 'เมตร', 'LOEI', '2025-01-07', 'OUT20250107001', 1000, 100, NULL),
+(347, '38-24-050046', '38-24-050046', 'P0200100103016', 'Cable-THW', '20 SQ.MM.BLACK', 'เมตร', 'LOEI', '2025-01-07', 'OUT20250107001', 500, 100, NULL),
+(348, '38-24-050046', '38-24-050046', 'P0200100103016', 'Cable-THW', '20 SQ.MM.BLACK', 'เมตร', 'LOEI', '2025-01-07', 'OUT20250107001', 400, 100, 'คืนของ');
 
 --
 -- Indexes for dumped tables
@@ -26412,6 +26492,13 @@ INSERT INTO `withdraw` (`id`, `refcode_before`, `refcode_with`, `material_code`,
 --
 ALTER TABLE `droppoint_import`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
 
 --
 -- Indexes for table `import_add`
@@ -26426,6 +26513,32 @@ ALTER TABLE `material_code`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD KEY `password_resets_email_index` (`email`);
+
+--
+-- Indexes for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`email`);
+
+--
+-- Indexes for table `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
+
+--
 -- Indexes for table `refcode_data`
 --
 ALTER TABLE `refcode_data`
@@ -26436,6 +26549,13 @@ ALTER TABLE `refcode_data`
 --
 ALTER TABLE `sum`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `users_email_unique` (`email`);
 
 --
 -- Indexes for table `withdraw`
@@ -26451,37 +26571,61 @@ ALTER TABLE `withdraw`
 -- AUTO_INCREMENT for table `droppoint_import`
 --
 ALTER TABLE `droppoint_import`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- AUTO_INCREMENT for table `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `import_add`
 --
 ALTER TABLE `import_add`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=345;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=591;
 
 --
 -- AUTO_INCREMENT for table `material_code`
 --
 ALTER TABLE `material_code`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=348;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=354;
+
+--
+-- AUTO_INCREMENT for table `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `refcode_data`
 --
 ALTER TABLE `refcode_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26273;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26283;
 
 --
 -- AUTO_INCREMENT for table `sum`
 --
 ALTER TABLE `sum`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `withdraw`
 --
 ALTER TABLE `withdraw`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=349;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
