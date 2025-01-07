@@ -727,6 +727,7 @@
 
 
             <li>
+
                 <a href="/withdraw">
                     <i class="fa-solid fa-hand-holding-heart"></i>
                     <span class="link_name">เบิกของ</span>
@@ -773,7 +774,7 @@
         <h2>Edit Data</h2>
 
         <!-- Form starts here -->
-        <form action="/edit/save" method="POST">
+        <form action="/edit/save/withdraw" method="POST">
             @csrf
 
             @if (session('success'))
@@ -782,66 +783,80 @@
                 </div>
             @endif
 
+
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Refcode</th>
-                        <th scope="col">Droppoint</th>
+                        <th scope="col">From</th>
+                        <th scope="col">To</th>
                         <th scope="col">Material Code</th>
                         <th scope="col">Material Name</th>
-                        <th scope="col">Spec/Size</th>
-                        <th scope="col">Brand</th>
+                        <th scope="col">Spec</th>
                         <th scope="col">Unit</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Remark</th>
+                        <th scope="col">Droppoint</th>
                         <th scope="col">Date</th>
                         <th scope="col">Transaction ID</th>
-                        <th scope="col">Import Quantity</th>
+                        <th scope="col">Avilable</th>
+                        <th scope="col">Withdraw</th>
+                        <th scope="col">Remark</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr style="font-size: 8px; text-align:center">
                         <td>
-                            <input class="form-control" name="refcode" value="{{ $edit->refcode_import }}" readonly
-                                style="font-size: 12px;">
+                            <input class="form-control" name="refcode_with" value="{{ $editWith->refcode_with }}"
+                                readonly style="font-size: 12px;">
                         </td>
 
+                        <td><input type="text" class="form-control" name="refcode_before"
+                                value="{{ $editWith->refcode_before }}" readonly></td>
+
+                        <td><input type="text" class="form-control" name="material_code"
+                                value="{{ $editWith->material_code }}" readonly></td>
+
+                        <td><input type="text" class="form-control" name="material_name"
+                                value="{{ $editWith->material_name }}" readonly></td>
+
+                        <td><input type="text" class="form-control" name="spec" value="{{ $editWith->spec }}"
+                                readonly></td>
+
+                        <td><input type="text" class="form-control" name="unit" value="{{ $editWith->unit }}"
+                                readonly></td>
+
                         @foreach ($droppoint as $no)
-                            @if ($edit->droppoint_import == $no->id)
+                            @if ($editWith->droppoint == $no->id)
                                 <td>
                                     <!-- แสดงชื่อ Droppoint -->
-                                    <input type="text" class="form-control" value="{{ $no->droppoint }}" readonly>
+                                    <input type="text" class="form-control" name="droppoint" value="{{ $no->droppoint }}" readonly> 
 
-                                    <!-- บันทึกค่า ID ของ Droppoint -->
-                                    <input type="hidden" name="Droppoint" value="{{ $edit->droppoint_import }}">
+                                    <!-- บันทึกค่า ID ของ Droppoint 
+                                    <input type="hidden" name="droppoint" value="{{ $no->droppoint }}">
+                                    -->
                                 </td>
                             @endif
                         @endforeach
 
+                        <td><input type="date" class="form-control" name="date" value="{{ $editWith->date }}"
+                                readonly></td>
 
-                        <td><input type="text" class="form-control" name="material_code"
-                                value="{{ $edit->material_code_import }}" readonly></td>
-                        <td><input type="text" class="form-control" name="material_name"
-                                value="{{ $edit->material_name_import }}" readonly></td>
-                        <td><input type="text" class="form-control" name="spec_size_import"
-                                value="{{ $edit->spec_size_import }}" readonly></td>
-                        <td><input type="text" class="form-control" name="brand" value="{{ $edit->brand }}"
-                                readonly></td>
-                        <td><input type="text" class="form-control" name="unit" value="{{ $edit->unit }}"
-                                readonly></td>
+                        <td><input type="text" class="form-control" name="transaction_id"
+                                value="{{ $editWith->transaction_id }}" readonly></td>
+
+                        <td><input type="text" class="form-control" name="available"
+                                value="{{ $editWith->available }}" readonly></td>
+
                         <td>
-                            <input type="number" class="form-control" name="quantity" id="quantityInput"
-                                value="-{{ abs($edit->quantity) }}" required oninput="forceNegativeValue(this)">
+                            <input type="hidden" name="quantity" value="{{ $editWith->quantity_with }}">
+                            <!-- ซ่อนค่าเดิม -->
+
+                            <input type="number" class="form-control" name="quantity_with" id="quantityInput"
+                                value="{{ $editWith->quantity_with }}" required>
                         </td>
 
-                        <td><input type="text" class="form-control" name="remark" value="{{ $edit->remark }}"
-                                required></td>
-                        <td><input type="text" class="form-control" name="date" value="{{ $edit->date }}"
-                                readonly></td>
-                        <td><input type="text" class="form-control" name="transaction"
-                                value="{{ $edit->transaction }}" readonly></td>
-                        <td><input type="text" class="form-control" name="import_quantity"
-                                value="{{ $edit->import_quantity }}" readonly></td>
+
+                        <td><input type="text" class="form-control" name="remark"
+                                value="{{ $editWith->remark }}" required></td>
+
                     </tr>
 
                 </tbody>
@@ -849,7 +864,8 @@
 
             <!-- Submit Button -->
 
-            <button type="submit" class="btn btn-success">Edit</button>
+            <button type="submit" class="btn btn-success" onclick="return confirmEdit()">Edit</button>
+
 
         </form>
     </div>
@@ -858,14 +874,10 @@
 </body>
 
 <script>
-    function forceNegativeValue(input) {
-        // ตรวจสอบว่าค่าปัจจุบันมี "-" หรือไม่
-        if (input.value && !input.value.startsWith("-")) {
-            input.value = "-" + input.value;
-        }
+    function confirmEdit() {
+        return confirm("คุณแน่ใจหรือไม่ว่าต้องการแก้ไขข้อมูลนี้?");
     }
 </script>
-
 
 <script>
     window.onload = function() {
