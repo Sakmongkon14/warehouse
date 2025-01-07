@@ -72,6 +72,14 @@ Route::get('/droppoint/search', [ImportItemController::class, 'search']);
 Route::get('/edit/{id}', [ImportItemController::class, 'edit'])->name('edit_import');
 Route::post('/edit/save', [ImportItemController::class, 'saveEdit'])->name('save_edit_import');
 
+// EDIT_ withdraw
+Route::get('/edit/withdraw/{id}',[ImportItemController::class, 'editWithdraw'])->name('edit_witdraw');
+Route::post('/edit/save/withdraw',[ImportItemController::class, 'saveEditWithdraw'])->name('save_edit_withdraw');
+
+
+
+
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
