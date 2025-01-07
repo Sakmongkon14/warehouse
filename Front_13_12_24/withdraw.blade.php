@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -743,10 +741,12 @@
 
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light" style="background-color: #ffffff; color: #ffffff;">
-            
-        
+
+
             <div class="container">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -773,13 +773,14 @@
                             @endif
                         @else
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ Auth::user()->name }}
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
+                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
                                     </a>
@@ -914,10 +915,17 @@
                                                 <td>{{ $item->material_code }}</td>
                                                 <td>{{ $item->spec }}</td>
                                                 <td>{{ $item->unit }}</td>
-                                                <td>{{ $item->droppoint }}</td>
+
+                                                @foreach ($droppoint as $no)
+                                                    @if ($item->droppoint == $no->id)
+                                                        <td>{{ $no->droppoint }}</td>
+                                                    @endif
+                                                @endforeach
+
                                                 <td>{{ $item->refcode }}</td>
                                                 <td>{{ $item->description }}</td>
                                                 <td>{{ $item->available }}</td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -987,36 +995,43 @@
                                 <table class="table" id="showDataTable">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Refcode </th>
-                                            <th scope="col">Refcode_withdraw</th>
+                                            <th scope="col">Edit </th>
+                                            <th scope="col">From </th>
+                                            <th scope="col">To</th>
                                             <th scope="col">Material Code</th>
                                             <th scope="col">Material Name</th>
+                                            <th scope="col">Spec</th>
+                                            <th scope="col">Unit</th>
                                             <th scope="col">Droppoint</th>
                                             <th scope="col">Date</th>
                                             <th scope="col">Transaction_ID</th>
-                                            <th scope="col">Available</th>
                                             <th scope="col">Withdraw</th>
+                                            <th scope="col">Remark</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach ($withdraw as $item)
                                             <tr style="font-size: 10px; text-align:center">
+
+                                                <td><a href=" {{ route('edit_witdraw', $item->id) }}"><i
+                                                            class='fas fa-pen'
+                                                            style='font-size:10px;color:red'></i></i></a></td>
+
+
                                                 <td>{{ $item->refcode_with }}</td>
                                                 <td>{{ $item->refcode_before }}</td>
 
                                                 <td>{{ $item->material_code }}</td>
                                                 <td>{{ $item->material_name }}</td>
+                                                <td>{{ $item->spec }}</td>
+                                                <td>{{ $item->unit }}</td>
 
-                                                @foreach ($droppoint as $no)
-                                                    @if ($item->droppoint == $no->id)
-                                                        <td>{{ $no->droppoint }}</td>
-                                                    @endif
-                                                @endforeach
+                                                <td>{{ $item->droppoint }}</td>
 
                                                 <td>{{ $item->date }}</td>
                                                 <td>{{ $item->transaction_id }}</td>
-                                                <td>{{ $item->quantity_before }}</td>
                                                 <td>{{ $item->quantity_with }}</td>
+                                                <td>{{ $item->remark }}</td>
 
                                             </tr>
                                         @endforeach
@@ -1091,8 +1106,24 @@
 
                 <div class="d-flex justify-content-center">
                     <input class="btn btn-success" type="submit" value="Submit" id="submit-button-container"
-                        style="display: none;">
+                        onclick="confirmSubmission(event)" style="display: none;">
                 </div>
+
+                <script>
+                    function confirmSubmission(event) {
+                        // แสดงกล่องยืนยัน
+                        var userConfirmed = confirm("คุณต้องการส่งข้อมูลนี้หรือไม่?");
+
+                        // ถ้าผู้ใช้กดยืนยัน ให้ส่งฟอร์ม และคืนค่า true
+                        if (userConfirmed) {
+                            return true;
+                        } else {
+                            // ถ้าผู้ใช้กดยกเลิก ยกเลิกการส่งข้อมูล และคืนค่า false
+                            event.preventDefault();
+                            return false;
+                        }
+                    }
+                </script>
 
         </div>
 
@@ -1111,6 +1142,11 @@
             });
         </script>
 
+        <script>
+            const droppoints = @json($droppoint); // ส่ง `$droppoint` ไปในรูป JSON
+        </script>
+
+
 
         <!-- click link -->
         <script>
@@ -1122,8 +1158,10 @@
                 const quantity = link.getAttribute('data-available');
                 const refcode = link.getAttribute('data-refcode');
                 const description = link.getAttribute('data-description');
-                const droppoint = link.getAttribute('data-droppoint');
+                const droppointId = link.getAttribute('data-droppoint'); // รับค่า ID ของ droppoint
 
+                // หา droppoint ที่ตรงกับ ID
+                const droppoint = droppoints.find(dp => dp.id == droppointId);
                 // สร้างแถวใหม่ในตาราง
                 const container = document.getElementById('refcode-table-body'); // ตารางที่จะแสดงแถวใหม่
 
@@ -1135,7 +1173,9 @@
         <td><input type="text" name="material_name_import[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${materialName}" ></td>
         <td><input type="text" name="unit[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${unit}" ></td>
         <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${specSize}" ></td>
-        <td><input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${droppoint}" ></td>        
+        <td>
+            <input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${droppoint ? droppoint.droppoint : 'ไม่พบข้อมูล'}" >
+        </td>
         <td><input type="text" name="available[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${quantity}" ></td>
         <td><input type="number" name="Amout[]" class="form-control" style="text-align: center;" step="1" ></td>
         <td><button type="button" class="btn btn-danger" onclick="removeRow(this)" >ลบ</button></td>
@@ -1164,7 +1204,6 @@
                 }
             }
         </script>
-
 
         <!-- jQuery (if not already included) -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1201,6 +1240,11 @@
                                         $('#refcode-table-body').empty().show();
 
                                         response.imports.forEach(function(importData) {
+
+                                            // ค้นหา droppoint ที่ตรงกับ importData.droppoint
+                                            matchedDroppoint = droppoints.find(dp =>
+                                                dp.id == importData.droppoint);
+
                                             let row = `
                                                 <tr>
                                                     <td><input type="text" name="refcode_import[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.refcode}" readonly></td>
@@ -1208,7 +1252,10 @@
                                                     <td><input type="text" name="material_name_import[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.material_name}" readonly></td>
                                                     <td><input type="text" name="unit[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.unit}" readonly></td>
                                                     <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.spec}" readonly></td>
-                                                    <td><input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.droppoint}" readonly></td>  
+                                                     <td>
+                                                        <input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" 
+                                                        value="${matchedDroppoint ? matchedDroppoint.droppoint : 'ไม่พบข้อมูล'}" readonly>
+                                                    </td> 
                                                     <td><input type="text" name="available[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.available}" readonly></td>
                                                     <td><input type="number" name="Amout[]" class="form-control" required style="font-size: 12px; text-align: center;" step="1"></td>
                                                     <td><button type="button" class="btn btn-warning" onclick="removeRow(this)">ลบ</button></td>
@@ -1257,7 +1304,6 @@
                 }
             }
         </script>
-
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
