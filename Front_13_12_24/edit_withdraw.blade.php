@@ -699,8 +699,6 @@
         text-align: center;
     }
 
-
-
     .table thead {
         background-color: #55608f;
         /* สีพื้นหลังที่เหมาะสมสำหรับ thead */
@@ -783,7 +781,6 @@
                 </div>
             @endif
 
-
             <table class="table">
                 <thead>
                     <tr>
@@ -803,6 +800,7 @@
                 </thead>
                 <tbody>
                     <tr style="font-size: 8px; text-align:center">
+
                         <td>
                             <input class="form-control" name="refcode_with" value="{{ $editWith->refcode_with }}"
                                 readonly style="font-size: 12px;">
@@ -823,18 +821,8 @@
                         <td><input type="text" class="form-control" name="unit" value="{{ $editWith->unit }}"
                                 readonly></td>
 
-                        @foreach ($droppoint as $no)
-                            @if ($editWith->droppoint == $no->id)
-                                <td>
-                                    <!-- แสดงชื่อ Droppoint -->
-                                    <input type="text" class="form-control" name="droppoint" value="{{ $no->droppoint }}" readonly> 
-
-                                    <!-- บันทึกค่า ID ของ Droppoint 
-                                    <input type="hidden" name="droppoint" value="{{ $no->droppoint }}">
-                                    -->
-                                </td>
-                            @endif
-                        @endforeach
+                        <td><input type="text" class="form-control" name="droppoint"
+                                value="{{ $editWith->droppoint }}" readonly></td>
 
                         <td><input type="date" class="form-control" name="date" value="{{ $editWith->date }}"
                                 readonly></td>
@@ -845,17 +833,21 @@
                         <td><input type="text" class="form-control" name="available"
                                 value="{{ $editWith->available }}" readonly></td>
 
+
+                        <!-- ห้ามกรอกเกินค่าเดิม -->
                         <td>
-                            <input type="hidden" name="quantity" value="{{ $editWith->quantity_with }}">
+                            <input type="hidden" name="quantity" id="quantityHidden"
+                                value="{{ $editWith->quantity_with }}">
                             <!-- ซ่อนค่าเดิม -->
 
                             <input type="number" class="form-control" name="quantity_with" id="quantityInput"
-                                value="{{ $editWith->quantity_with }}" required>
+                                value="{{ $editWith->quantity_with }}" required oninput="checkQuantity()"
+                                min="0">
                         </td>
 
-
                         <td><input type="text" class="form-control" name="remark"
-                                value="{{ $editWith->remark }}" required></td>
+                                value="{{ $editWith->remark }}" required>
+                        </td>
 
                     </tr>
 
@@ -872,6 +864,20 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
+
+<!-- ห้ามกรอกเกินค่าเดิม -->
+<script>
+    function checkQuantity() {
+        const quantityHidden = document.getElementById("quantityHidden").value; // ค่าเดิม
+        const quantityInput = document.getElementById("quantityInput"); // ช่องกรอกใหม่
+
+        if (parseFloat(quantityInput.value) > parseFloat(quantityHidden)) {
+            alert("ค่าที่กรอกห้ามเกินค่าเดิม!");
+            quantityInput.value = quantityHidden; // รีเซ็ตค่าให้กลับเป็นค่าเดิม
+        }
+    }
+</script>
 
 <script>
     function confirmEdit() {
