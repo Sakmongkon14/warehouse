@@ -86,13 +86,12 @@ class ImportItemController extends Controller
         $data = [];
         $sum = [];
 
-        $rowCount = count($refcodenames);
-
         $currentDate = $date[0];
         $id = "IN";
 
         for ($i = 0; $i < $maxCount; $i++) {
 
+            // คำนวณ transaction ID
             $lastTransactionId = DB::table('import_add')
                 ->whereDate('date', $date[$i]) // ตรวจสอบจากวันที่ปัจจุบัน
                 ->orderBy('transaction', 'desc')
@@ -113,23 +112,44 @@ class ImportItemController extends Controller
             $withdraw = $quantities_with[$i] ?? null ?? 0;
             $available = $quantity - $withdraw; // คำนวณจาก quantity และ maxCount
 
+            // ตรวจสอบว่ามีข้อมูลซ้ำใน `$data[]` หรือไม่
+            $existingIndex = null;
 
-            // เตรียมข้อมูลสำหรับ insert ลงใน import_add
-            $data[] = [
-                'refcode_import' => $refcodenames[$i],
-                'droppoint_import' => $droppoint[$i],
-                'material_code_import' => $materialCodes[$i],
-                'material_name_import' => $request->materialName[$i] ?? '',
-                'spec_size_import' => $request->specSize[$i] ?? '',
-                'brand' => $request->brand[$i] ?? '',
-                'unit' => $request->unit[$i] ?? '',
-                'quantity' => $quantity,
-                'remark' => $request->Remark[$i] ?? '',
-                'date' => $date[$i],
-                'transaction' => $newTransactionId,
-                'import_quantity' => $maxCount
-            ];
+            foreach ($data as $key => $item) {
+                if (
+                    $item['refcode_import'] === ($refcodenames[$i] ?? null) &&
+                    $item['droppoint_import'] === ($droppoint[$i] ?? null) &&
+                    $item['material_code_import'] === ($materialCodes[$i] ?? null) &&
+                    $item['material_name_import'] === ($request->materialName[$i] ?? null) &&
+                    $item['spec_size_import'] === ($request->specSize[$i] ?? null)
+                ) {
+                    $existingIndex = $key;
+                    break;
+                }
+            }
 
+            if ($existingIndex !== null) {
+                // ถ้าข้อมูลซ้ำ ให้รวมค่า `quantity` และเพิ่มค่า `import_quantity` เพียงครั้งเดียว
+                $data[$existingIndex]['quantity'] += $quantity;
+            } else {
+
+
+                // เตรียมข้อมูลสำหรับ insert ลงใน import_add
+                $data[] = [
+                    'refcode_import' => $refcodenames[$i],
+                    'droppoint_import' => $droppoint[$i],
+                    'material_code_import' => $materialCodes[$i],
+                    'material_name_import' => $request->materialName[$i] ?? '',
+                    'spec_size_import' => $request->specSize[$i] ?? '',
+                    'brand' => $request->brand[$i] ?? '',
+                    'unit' => $request->unit[$i] ?? '',
+                    'quantity' => $quantity,
+                    'remark' => $request->Remark[$i] ?? '',
+                    'date' => $date[$i],
+                    'transaction' => $newTransactionId,
+                    'import_quantity' => 0 // ตั้งค่าจำนวนทั้งหมด
+                ];
+            }
             // เตรียมข้อมูลสำหรับตรวจสอบและอัปเดตใน sum
             $sum[] = [
                 'refcode' => $refcodenames[$i],
@@ -143,6 +163,14 @@ class ImportItemController extends Controller
                 'available' => $available // ใส่ available ที่คำนวณไว้แล้ว
             ];
         }
+
+        // ตั้งค่า import_quantity = จำนวนรายการที่เหลือใน $data
+        $importQuantity = count($data);
+        foreach ($data as &$item) {
+            $item['import_quantity'] = $importQuantity;
+        }
+
+        //dd($data);
 
         //dd($data,$lastTransactionId,$lastIdNumber,$newIdNumber );
 
@@ -668,20 +696,42 @@ class ImportItemController extends Controller
             // สร้าง Transaction ID ใหม่
             $newTransactionId = $transactionIdBase . str_replace('-', '', $currentDate) . str_pad($newIdNumber, 3, '0', STR_PAD_LEFT);
 
-            // เพิ่มข้อมูลใน array $data
-            $data[] = [
-                'refcode_before' => $refcodes_before[0] ?? null,
-                'refcode_with' => $refcodes_with[$i] ?? null,
-                'material_code' => $material_codes[$i] ?? null,
-                'material_name' => $material_names[$i] ?? null,
-                'spec' => $spec[$i] ?? null,
-                'unit' => $unit[$i] ?? null,
-                'droppoint' => $droppoints[$i] ?? null,
-                'date' => $currentDate,
-                'transaction_id' => $newTransactionId,
-                'quantity_before' => $avai[$i] ?? null,
-                'quantity_with' => $quantities_with[$i] ?? null,
-            ];
+            // ตรวจสอบข้อมูลซ้ำใน $data[]
+            $existingIndex = null;
+
+            foreach ($data as $key => $item) {
+                if (
+                    $item['refcode_with'] === ($refcodes_with[$i] ?? null) &&
+                    $item['material_code'] === ($material_codes[$i] ?? null) &&
+                    $item['material_name'] === ($material_names[$i] ?? null) &&
+                    $item['droppoint'] === ($droppoints[$i] ?? null) &&
+                    $item['spec'] === ($spec[$i] ?? null)
+                ) {
+                    $existingIndex = $key;
+                    break;
+                }
+            }
+
+            if ($existingIndex !== null) {
+                // ถ้าข้อมูลซ้ำ ให้รวมค่า quantity_with และ quantity_before
+                $data[$existingIndex]['quantity_with'] += ($quantities_with[$i] ?? 0);
+            } else {
+                // เพิ่มข้อมูลใหม่ใน array $data
+                $data[] = [
+                    'refcode_before' => $refcodes_before[0] ?? null,
+                    'refcode_with' => $refcodes_with[$i] ?? null,
+                    'material_code' => $material_codes[$i] ?? null,
+                    'material_name' => $material_names[$i] ?? null,
+                    'spec' => $spec[$i] ?? null,
+                    'unit' => $unit[$i] ?? null,
+                    'droppoint' => $droppoints[$i] ?? null,
+                    'date' => $currentDate,
+                    'transaction_id' => $newTransactionId,
+                    'quantity_before' => $avai[$i] ?? null,
+                    'quantity_with' => $quantities_with[$i] ?? null,
+                ];
+            }
+
 
             // เตรียมข้อมูลสำหรับ table sum
             $sum[] = [
@@ -768,6 +818,8 @@ class ImportItemController extends Controller
             ->where('id', $id)  // ใช้ where แทน wheres
             ->first();  // ดึงข้อมูลแถวเดียวตาม id
 
+        // dd($edit);
+
         $droppoint = DB::table('droppoint_import')->get();
 
         // ส่งข้อมูลไปยัง view 'edit'
@@ -788,10 +840,21 @@ class ImportItemController extends Controller
             ]
         );
 
-        $quantity = $request->quantity;
-        $withdraw = $quantities_with ?? null ?? 0; //หากไม่มีค่าการถอนให้ตั้งค่าเป็น 0
-        $available = $quantity - $withdraw; // คำนวณจำนวนที่เหลืออยู่
+        $quantity = $request->quantity; // INPUT เก่า
+        $newquantity = $request->quantity_with ?? null ?? 0; // INPUT ใหม่ที่กรอก
 
+        $available = abs($quantity - $newquantity); // คำนวณจำนวนที่เหลืออยู่
+
+        $newquantity = $request->quantity_with; // INPUT ใหม่ที่กรอก
+        // $total = $quantity - $newquantity; 
+
+        /*
+          dd(
+                "ค่า quantity เดิม: " . $quantity,
+                "ค่า INPUT ใหม่ที่กรอก: " . $newquantity,
+                "ค่า Total ใหม่ที่: " . $total,
+            );
+        */
 
         // เตรียมข้อมูลสำหรับการ insert
         $newData = [
@@ -802,7 +865,7 @@ class ImportItemController extends Controller
             'spec_size_import' => $request->spec_size_import,
             'brand' => $request->brand,
             'unit' => $request->unit,
-            'quantity' => $request->quantity,
+            'quantity' => $newquantity,
             'remark' => $request->remark,
             'date' => $request->date,
             'transaction' => $request->transaction,
@@ -817,14 +880,40 @@ class ImportItemController extends Controller
             'spec' => $request->spec_size_import,
             'unit' => $request->unit,
             'quantity' => $request->quantity,
-            'withdraw' => $withdraw,
+            'withdraw' => $newquantity,
             'avilable' => $available
         ];
 
-        // dd($newData);
+        //dd($newData,$newSum);
 
         // Insert ข้อมูลใหม่ในฐานข้อมูล
         DB::table('import_add')->insert($newData);
+
+        $newImportAdd = DB::table('import_add')
+            ->where('refcode_import', $request->refcode)
+            ->where('droppoint_import', $request->Droppoint)
+            ->where('material_code_import', $request->material_code)
+            ->where('material_name_import', $request->material_name)
+            ->where('spec_size_import', $request->spec_size_import)
+            ->where('date', $request->date)
+            ->where('transaction', $request->transaction)
+            ->first();
+
+        // dd($newImportAdd);
+
+        if ($newImportAdd) {
+            $quantity = $request->quantity; // INPUT เก่า
+            $newquantity = $request->quantity_with; // INPUT ใหม่ที่กรอก
+            $total = abs($quantity - $newquantity); // แปลงผลลัพธ์ให้เป็นค่าบวกเสมอ
+
+            //dd($total);
+
+            DB::table('import_add')
+                ->where('id', $newImportAdd->id)
+                ->update([
+                    'quantity' => $total //เปลี่ยนค่า quantity
+                ]);
+        }
 
         // ตรวจสอบว่ามีข้อมูลในตาราง sum อยู่แล้วหรือไม่
         $newSumImport = DB::table('sum')
@@ -835,10 +924,19 @@ class ImportItemController extends Controller
             ->where('spec', $newData['spec_size_import'])          // ค้นหาตาม spec
             ->first();
 
-
         if ($newSumImport) {
-            $newQuantity = $newSumImport->quantity + $newData['quantity'];
-            $newAvailable = $newSumImport->available + $available; //เพิ่ม Available ใหม่
+            $newQuantity = abs($newSumImport->quantity + $newData['quantity']);
+            $newAvailable = abs($newSumImport->available + $newData['quantity']); //เพิ่ม Available ใหม่
+/*
+            dd(
+                'ค่าเดิม = ' . $newSumImport->quantity,
+                'ค่าใหม่ที่กรอก (-) = ' . $newData['quantity'],
+                'ค่า Quantity ใหม่ ' . $newQuantity,
+                $newSumImport->available,
+                $available,
+                $newAvailable
+            );
+            */
 
             DB::table('sum')
                 ->where('id', $newSumImport->id)
@@ -863,8 +961,7 @@ class ImportItemController extends Controller
             ->where('w.id', $id) // กำหนดเงื่อนไข id ที่ต้องการ
             ->first();
 
-
-        //dd($editWith);    
+        // dd($editWith);    
 
         $droppoint = DB::table('droppoint_import')->get();
 
@@ -885,18 +982,15 @@ class ImportItemController extends Controller
             ]
         );
 
-        // NEW Withdraw
+        // ค่า Input ใหม่
         $quantity_input = $request->quantity; // ค่า INPUT เก่า
         $newquantity_input = $request->quantity_with; // ค่า INPUT ใหม่ที่กรอก
-        $available = $request->available;  // ค่าที่สามารถเบิกได้ก่อนคำนวน
+        $available = $request->available;  // ค่าที่สามารถเบิกได้ก่อนคำนวณ
 
-        // NEW SUM
-        $total = $quantity_input - $newquantity_input;
-        $availableSum = $available + $newquantity_input; // คำนวณจำนวนที่เหลืออยู่
-
+        // เพิ่มข้อมูลใหม่ใน withdraw
         $newWithdraw = [
-            'refcode_with' => $request->refcode_with, //To
-            'refcode_before' => $request->refcode_before, //From
+            'refcode_with' => $request->refcode_with, // To
+            'refcode_before' => $request->refcode_before, // From
             'material_code' => $request->material_code,
             'material_name' => $request->material_name,
             'spec' => $request->spec,
@@ -904,55 +998,97 @@ class ImportItemController extends Controller
             'date' => $request->date,
             'transaction_id' => $request->transaction_id,
             'quantity_before' => $available,
-            'quantity_with' => $request->quantity_with,
+            'quantity_with' => $newquantity_input,
             'remark' => $request->remark,
             'droppoint' => $request->droppoint,
         ];
 
-        $newSum = [
-            'refcode' => $request->refcode_with,
-            'droppoint' => $request->droppoint,
-            'material_code' => $request->material_code,
-            'material_name' => $request->material_name,
-            'spec' => $request->spec,
-            'unit' => $request->unit,
-            'quantity' => $request->quantity_before,
-            'withdraw' => $total,
-            'available' => $availableSum
-        ];
-
         //dd($newWithdraw);
 
-        // Insert ข้อมูลใหม่ในฐานข้อมูล
         DB::table('withdraw')->insert($newWithdraw);
+
+        // อัปเดตข้อมูลในแถวหลัก (remark = NULL)
+        $originalWithdraw = DB::table('withdraw')
+            ->where('refcode_with', $request->refcode_with)
+            ->where('material_code', $request->material_code)
+            ->where('material_name', $request->material_name)
+            ->where('spec', $request->spec)
+            ->where('droppoint', $request->droppoint)
+            ->where('date', $request->date)
+            ->where('transaction_id', $request->transaction_id)
+            ->whereNull('remark') // เงื่อนไขสำคัญ: remark ต้องเป็น NULL
+            ->first();
+
+
+        if ($originalWithdraw) {
+            // ดึงข้อมูลรายการแก้ไขที่ไม่ใช่ remark = NULL
+            $adjustedWithdraws = DB::table('withdraw')
+                ->where('refcode_with', $originalWithdraw->refcode_with)
+                ->where('material_code', $originalWithdraw->material_code)
+                ->where('material_name', $originalWithdraw->material_name)
+                ->where('spec', $originalWithdraw->spec)
+                ->where('droppoint', $originalWithdraw->droppoint)
+                ->where('date', $originalWithdraw->date)
+                ->where('transaction_id', $request->transaction_id)
+                ->whereNotNull('remark') // ดึงเฉพาะรายการที่มี remark ไม่เป็น NULL
+                ->get();
+
+
+            $totalWithdraw = $request->quantity_with; //ค่า INPUT ใหม่ที่กรอก
+            $withdraw = $originalWithdraw->quantity_with; //ค่า Withdraw เดิม
+
+            // คำนวณ quantity_with ที่เหลือในแถวหลัก
+            $remainingQuantity = $originalWithdraw->quantity_with - $totalWithdraw;
+
+            //dd($originalWithdraw->quantity_with,$totalWithdraw,$remainingQuantity);
+
+            /* dd(
+                "ค่า withdraw เดิม: " . $withdraw,
+                "ค่า INPUT ใหม่ที่กรอก: " . $totalWithdraw,
+                "จำนวนที่เิบิกได้: " . $remainingQuantity,
+            );
+            */
+
+            // อัปเดต quantity_with ในแถวหลัก
+            DB::table('withdraw')
+                ->where('id', $originalWithdraw->id)
+                ->update([
+                    'quantity_with' => $remainingQuantity // ตั้งค่าใหม่
+                ]);
+        }
+
 
         // ตรวจสอบว่ามีข้อมูลในตาราง sum อยู่แล้วหรือไม่
         $newSumWithdwraw = DB::table('sum')
             ->where('refcode', $newWithdraw['refcode_with'])      // ค้นหาตาม refcode
             ->where('material_code', $newWithdraw['material_code']) // ค้นหาตาม material_code
             ->where('material_name', $newWithdraw['material_name']) // ค้นหาตาม material_name
+            ->where('droppoint', $newWithdraw['droppoint'])  // ค้นหาตาม droppoint
             ->where('spec', $newWithdraw['spec'])          // ค้นหาตาม spec
-            //  ->where('droppoint', $newWithdraw['droppoint'])     // ค้นหาตาม droppoint
             ->first();
 
-        //dd($newSumWithdwraw);
-
         if ($newSumWithdwraw) {
-            $newQuantity = $total;
-            $newAvailable = $availableSum; //เพิ่ม Available ใหม่
+
+            // รวมค่า withdraw ใหม่ กับค่าที่มีอยู่เดิม
+            $newQuantity = $newSumWithdwraw->withdraw - $newquantity_input; // withdraw เก่า - withdraw ที่กรอกใหม่่
+
+            // คำนวณจำนวน available ที่เหลือ
+            $newAvailable = $newSumWithdwraw->available + $newquantity_input; //
+
+            /*
+           dd(
+                "withdraw: " . $newQuantity,      
+                "available: " . $newAvailable, 
+            );
+            */
 
             DB::table('sum')
                 ->where('id', $newSumWithdwraw->id)
                 ->update([
-                    'withdraw' => $total,
-                    'available' => $availableSum
+                    'withdraw' => $newQuantity,
+                    'available' => $newAvailable
                 ]);
         }
-
-        /* else {
-            dd('ไม่เข้าเงื่อนไข if ($newSumWithdwraw)');
-        }
-        */
 
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ!');
     }
