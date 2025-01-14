@@ -738,11 +738,15 @@
                             @foreach ($summary as $item)
                                 <tr style="font-size: 10px; text-align:center">
                                     <td>{{ $item->refcode }}</td>
-                                    @foreach ($droppoint as $no)
+
+                                <!--    @foreach ($droppoint as $no)
                                         @if ($item->droppoint == $no->id)
-                                            <td>{{ $no->droppoint }}</td>
+                                            <td>{{ $item->droppoint }}</td>
                                         @endif
                                     @endforeach
+                                -->
+
+                                    <td>{{ $item->droppoint }}</td>            
                                     <td>{{ $item->material_code }}</td>
                                     <td>{{ $item->material_name }}</td>
                                     <td>{{ $item->spec }}</td>
