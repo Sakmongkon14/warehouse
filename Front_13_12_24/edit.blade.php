@@ -806,17 +806,11 @@
                                 style="font-size: 12px;">
                         </td>
 
-                        @foreach ($droppoint as $no)
-                            @if ($edit->droppoint_import == $no->id)
-                                <td>
-                                    <!-- แสดงชื่อ Droppoint -->
-                                    <input type="text" class="form-control" value="{{ $no->droppoint }}" readonly>
 
-                                    <!-- บันทึกค่า ID ของ Droppoint -->
-                                    <input type="hidden" name="Droppoint" value="{{ $edit->droppoint_import }}">
-                                </td>
-                            @endif
-                        @endforeach
+                        <td>
+                            <input class="form-control" name="Droppoint" value="{{ $edit->droppoint_import }}" readonly
+                                style="font-size: 12px;">
+                        </td>
 
 
                         <td><input type="text" class="form-control" name="material_code"
@@ -829,8 +823,13 @@
                                 readonly></td>
                         <td><input type="text" class="form-control" name="unit" value="{{ $edit->unit }}"
                                 readonly></td>
+
                         <td>
-                            <input type="number" class="form-control" name="quantity" id="quantityInput"
+                            <input type="hidden" name="quantity" id="quantityHidden"
+                                value="-{{ abs($edit->quantity) }}">
+                            <!-- ซ่อนค่าเดิม -->
+
+                            <input type="number" class="form-control" name="quantity_with" id="quantityInput"
                                 value="-{{ abs($edit->quantity) }}" required oninput="forceNegativeValue(this)">
                         </td>
 
@@ -862,6 +861,14 @@
         // ตรวจสอบว่าค่าปัจจุบันมี "-" หรือไม่
         if (input.value && !input.value.startsWith("-")) {
             input.value = "-" + input.value;
+        }
+
+        const quantityHidden = document.getElementById("quantityHidden").value; // ค่าเดิม
+        const quantityInput = document.getElementById("quantityInput"); // ช่องกรอกใหม่
+
+        if (parseFloat(quantityInput.value) < parseFloat(quantityHidden)) {
+            alert("ค่าที่กรอกห้ามเกินค่าเดิม!");
+            quantityInput.value = quantityHidden; // รีเซ็ตค่าให้กลับเป็นค่าเดิม
         }
     }
 </script>
