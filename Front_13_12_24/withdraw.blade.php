@@ -918,9 +918,11 @@
 
                                                 @foreach ($droppoint as $no)
                                                     @if ($item->droppoint == $no->id)
-                                                        <td>{{ $no->droppoint }}</td>
+                                                        <td>{{ $item->droppoint }}</td>
                                                     @endif
                                                 @endforeach
+
+                                                <td>{{ $item->droppoint }}</td>
 
                                                 <td>{{ $item->refcode }}</td>
                                                 <td>{{ $item->description }}</td>
@@ -1012,11 +1014,14 @@
                                     <tbody>
                                         @foreach ($withdraw as $item)
                                             <tr style="font-size: 10px; text-align:center">
-
-                                                <td><a href=" {{ route('edit_witdraw', $item->id) }}"><i
+                                                
+                                                <td>
+                                                    @if(empty($item->remark || $item->quantity_with == 0))
+                                                    <a href=" {{ route('edit_witdraw', $item->id) }}"><i
                                                             class='fas fa-pen'
-                                                            style='font-size:10px;color:red'></i></i></a></td>
-
+                                                            style='font-size:10px;color:red'></i></i></a>
+                                                    @endif
+                                                </td>
 
                                                 <td>{{ $item->refcode_with }}</td>
                                                 <td>{{ $item->refcode_before }}</td>
@@ -1160,8 +1165,7 @@
                 const description = link.getAttribute('data-description');
                 const droppointId = link.getAttribute('data-droppoint'); // รับค่า ID ของ droppoint
 
-                // หา droppoint ที่ตรงกับ ID
-                const droppoint = droppoints.find(dp => dp.id == droppointId);
+                
                 // สร้างแถวใหม่ในตาราง
                 const container = document.getElementById('refcode-table-body'); // ตารางที่จะแสดงแถวใหม่
 
@@ -1174,7 +1178,7 @@
         <td><input type="text" name="unit[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${unit}" ></td>
         <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${specSize}" ></td>
         <td>
-            <input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${droppoint ? droppoint.droppoint : 'ไม่พบข้อมูล'}" >
+            <input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${droppointId}" >
         </td>
         <td><input type="text" name="available[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${quantity}" ></td>
         <td><input type="number" name="Amout[]" class="form-control" style="text-align: center;" step="1" ></td>
@@ -1241,10 +1245,6 @@
 
                                         response.imports.forEach(function(importData) {
 
-                                            // ค้นหา droppoint ที่ตรงกับ importData.droppoint
-                                            matchedDroppoint = droppoints.find(dp =>
-                                                dp.id == importData.droppoint);
-
                                             let row = `
                                                 <tr>
                                                     <td><input type="text" name="refcode_import[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.refcode}" readonly></td>
@@ -1254,7 +1254,7 @@
                                                     <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.spec}" readonly></td>
                                                      <td>
                                                         <input type="text" name="droppoint[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" 
-                                                        value="${matchedDroppoint ? matchedDroppoint.droppoint : 'ไม่พบข้อมูล'}" readonly>
+                                                        value="${importData.droppoint}" readonly>
                                                     </td> 
                                                     <td><input type="text" name="available[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${importData.available}" readonly></td>
                                                     <td><input type="number" name="Amout[]" class="form-control" required style="font-size: 12px; text-align: center;" step="1"></td>
