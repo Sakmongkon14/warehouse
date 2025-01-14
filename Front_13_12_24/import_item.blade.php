@@ -400,6 +400,8 @@
         border-radius: var(--after-border-radius);
     }
 
+
+
     input:focus {
         outline: none;
     }
@@ -430,6 +432,64 @@
         margin-top: 3px;
     }
 
+
+
+    /* ปุ่มนำของเข้า */
+    .cssbuttons-io {
+        position: relative;
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        border-radius: 0.8em;
+        cursor: pointer;
+        border: none;
+        background: linear-gradient(to right, #8e2de2, #4a00e0);
+        color: rgb(0, 0, 0);
+        overflow: hidden;
+    }
+
+    .cssbuttons-io svg {
+        width: 1.2em;
+        height: 1.2em;
+        margin-right: 0.5em;
+    }
+
+    .cssbuttons-io span {
+        position: relative;
+        z-index: 10;
+        transition: color 0.4s;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.8em 1.2em 0.8em 1.05em;
+    }
+
+    .cssbuttons-io::before,
+    .cssbuttons-io::after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    .cssbuttons-io::before {
+        content: "";
+        background: skyblue;
+        width: 120%;
+        left: -10%;
+        transform: skew(30deg);
+        transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
+    }
+
+    .cssbuttons-io:hover::before {
+        transform: translate3d(100%, 0, 0);
+    }
+
+    .cssbuttons-io:active {
+        transform: scale(0.95);
+    }
 
 
 
@@ -512,7 +572,7 @@
     .button .button__text {
         transform: translateX(22px);
         color: #fff;
-        font-size: 14px;
+        font-size: 9px;
         font-weight: 600;
     }
 
@@ -588,7 +648,7 @@
         align-items: baseline;
         font-family: sans-serif;
         width: 100%;
-        height: 350px;
+        height: 346px;
         overflow-y: auto;
         border: 1px solid #ccc;
     }
@@ -603,8 +663,8 @@
         z-index: 2;
         /* ให้หัวคอลัมน์อยู่ด้านบนของเนื้อหา */
         text-align: center;
-        padding: 15px;
-        font-size: 14px;
+        padding: 10px;
+        font-size: 11px;
     }
 
 
@@ -633,9 +693,11 @@
 
     .table td {
         background-color: #ffffff33;
-        padding: 15px;
+        padding: 0px;
         text-align: center;
     }
+
+
 
     .table thead {
         background-color: #55608f;
@@ -650,6 +712,65 @@
 
 
 <body>
+
+    <div id="app">
+        <nav class="navbar navbar-expand-md navbar-light" style="background-color: #ffffff; color: #ffffff;">
+
+
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Left Side Of Navbar -->
+                    <ul class="navbar-nav me-auto">
+
+                    </ul>
+
+                    <!-- Right Side Of Navbar -->
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Authentication Links -->
+                        @guest
+                            @if (Route::has('login'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                </li>
+                            @endif
+
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                </li>
+                            @endif
+                        @else
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        {{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
 
     <div class="sidebar ">
         <div class="logo_details">
@@ -718,9 +839,9 @@
             <!--Add Modal-->
             <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                    <div class="modal-content" style="left: 300px;">
+                    <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="modal-title" id="addModalLabel">Add Material</h4>
+                            <h4 class="modal-title" id="addModalLabel" style="font-size: 15px;">Add Material</h4>
                             <form class="d-flex ms-auto">
                                 <input type="text" class="form-control fixed-width-input" id="searchAddMaterial"
                                     placeholder="Search" aria-label="Search"
@@ -748,7 +869,8 @@
                                                 <td>{{ $item->id }}</td>
                                                 <td>
                                                     <a href="#"
-                                                        onclick="populateHiddenFields('{{ $item->material_c }}', '{{ $item->material_n }}', '{{ $item->spec_size }}', '{{ $item->brand }}', '{{ $item->unit }}', event); $('#addModal').modal('hide');">
+                                                        onclick="populateHiddenFields('{{ $item->material_c }}', '{{ $item->material_n }}', '{{ $item->spec_size }}', '{{ $item->brand }}', '{{ $item->unit }}', event); $('#addModal').modal('hide');"
+                                                        style="text-decoration: none; color: #0dcaf0;">
                                                         {{ $item->material_c }}
                                                     </a>
                                                 </td>
@@ -777,20 +899,15 @@
             @endif
 
             <!-- Show Data -->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#showDataModal"
-                style="width: 170px; height: 40px; text-align: center;">
-                ประวัติการนำของเข้า
-            </button>
-
-            <!-- Show Data -->
             <div class="modal fade" id="showDataModal" tabindex="-1" aria-labelledby="showDataModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="modal-title" id="showDataModalLabel">ประวัติการนำของเข้า</h4>
+                            <h4 class="modal-title" id="showDataModalLabel" style="font-size: 15px;">
+                                ประวัติการนำของเข้า</h4>
                             <button class="button" type="button" id="exportButton" aria-label="Export">
-                                <span class="button__text">Export</span>
+                                <span class="button__text">Export visible data</span>
                                 <span class="button__icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35"
                                         id="bdd05811-e15d-428c-bb53-8661459f9307" data-name="Layer 2" class="svg">
@@ -815,6 +932,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                         </div>
+
                         <div class="modal-body">
                             <div class="table-container">
                                 <table class="table" id="showDataTable">
@@ -839,7 +957,14 @@
                                         @foreach ($import_add as $item)
                                             <tr style="font-size: 10px; text-align:center">
 
-                                                <td><a href=" {{ route('edit_import', $item->id) }}"><i class='fas fa-pen' style='font-size:10px;color:red'></i></i></a></td>
+                                                
+                                                <td>
+                                                    @if(empty($item->remark || $item->quantity == 0))
+                                                    <a href=" {{ route('edit_import', $item->id) }}"><i
+                                                            class='fas fa-pen'
+                                                            style='font-size:10px;color:red'></i></i></a>
+                                                    @endif
+                                                </td>
 
                                                 <td>{{ $item->refcode_import }}</td>
 
@@ -849,6 +974,7 @@
                                                     @endif
                                                 @endforeach
 
+                                                <td>{{ $item->droppoint_import}}</td>
                                                 <td>{{ $item->material_code_import }}</td>
                                                 <td>{{ $item->material_name_import }}</td>
                                                 <td>{{ $item->spec_size_import }}</td>
@@ -872,90 +998,116 @@
                 </div>
             </div>
 
+            <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="addModalLabel" style="font-size: 15px;">Add Material</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+  
+
             <form class="row g-3 justify-content-center my-2 text-center" autocomplete="off" method="POST"
                 action="/importadd">
                 @csrf
 
-                <div class="container ">
-                    <div class="row g-3 ">
-                        <div class="col-md-3">
-                            <label for="refcode" class="form-label" style="text-align: left">Refcode</label>
-                            <input type="text" name="refcodename[]" class="form-control" id="refcode"
-                                placeholder="กรุณากรอก Refcode" required>
+                <div class="container">
+                    <div class="row d-flex align-items-center justify-content-between">
+
+                        <!-- Left Section: Refcode, Date, Droppoint -->
+                        <div class="col d-flex align-items-center gap-3">
+                            <div class="col-md-3">
+                                <label for="refcode" class="form-label"
+                                    style="justify-content: flex-start;  display: flex;">Refcode</label>
+                                <input type="text" name="refcodename[]" class="form-control" id="refcode"
+                                    required>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="date" class="form-label"
+                                    style="justify-content: flex-start; display: flex;">Date</label>
+                                <input type="date" name="date[]" class="form-control" id="date" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="droppoint" class="form-label" style="justify-content: flex-start; display: flex;">Droppoint</label>
+                                <select name="droppoint[]" class="form-control" id="droppoint" required>
+                                    <option value="" disabled selected>กรุณาเลือก Droppoint</option>
+                                    @foreach ($droppoint as $item)
+                                        <option value="{{ $item->droppoint }}">{{ $item->droppoint }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
                         </div>
 
-                        <div class="col-md-2 ">
-                            <label for="date" class="form-label">Date</label>
-                            <input type="date" name="date[]" class="form-control" id="date"
-                                placeholder="กรุณากรอก Droppoint" required>
+                        <!-- Right Section: Button -->
+                        <div class="col-auto">
+                            <button type="button" class="cssbuttons-io" data-bs-toggle="modal"
+                                data-bs-target="#showDataModal">
+                                <span>ประวัติการนำเข้า</span>
+                            </button>
                         </div>
 
-                        <div class="col-md-2">
-                            <label for="droppoint" class="form-label">Droppoint</label>
-                            <select name="droppoint[]" class="form-control" id="droppoint" required>
-                                <option value="" disabled selected>กรุณาเลือก Droppoint</option>
-                                @foreach ($droppoint as $item)
-                                    <option value="{{ $item->id }}">{{ $item->droppoint }}</option>
-                                @endforeach
-                            </select>
-                        </div>
 
+                        <div class="row g-3 my-2">
+                            <div class="col-md-4 d-flex align-items-center">
+                                <div id="refcode-message" style="display: none;" class="ms-3 text-center mt-4"></div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="row g-3 my-2">
-                        <div class="col-md-4 d-flex align-items-center">
-                            <div id="refcode-message" style="display: none;" class="ms-3 text-center mt-4"></div>
-                        </div>
+                    <hr>
+
+                    <!-- ADD -->
+                    <div class="row g-12">
+                        <button type="button" id="addButton" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#addModal"
+                            style="display: none; margin: 10px; width: 60px; text-align: center; float: left;">
+                            ADD
+                        </button>
                     </div>
 
+                    <!-- คอนเทนเนอร์แสดงข้อมูลที่เลือก -->
+                    <div id="refcode-message"></div>
+
+
+                    <!-- สร้างคอนเทนเนอร์ที่ครอบตาราง -->
+                    <div style="max-height: 220px; overflow-y: auto;">
+                        <table class="table table-bordered" id="selectedMaterialsTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Material Code</th>
+                                    <th scope="col">Material Name</th>
+                                    <th scope="col">Spec/Size</th>
+                                    <th scope="col">Brand</th>
+                                    <th scope="col">Unit</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Remark</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="rowsContainer">
+                                <!-- ข้อมูลที่เลือกจะถูกแสดงที่นี่ -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <hr>
-
-                <!-- ADD -->
-                <div class="row g-12">
-                    <button type="button" id="addButton" class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#addModal"
-                        style="display: none; width: 70px; text-align: center; float: left;">
-                        ADD
-                    </button>
-                </div>
-
-                <!-- คอนเทนเนอร์แสดงข้อมูลที่เลือก -->
-                <div id="refcode-message"></div>
-
-
-                <!-- สร้างคอนเทนเนอร์ที่ครอบตาราง -->
-                <div style="max-height: 270px; overflow-y: auto;">
-                    <table class="table table-bordered" id="selectedMaterialsTable">
-                        <thead>
-                            <tr>
-                                <th scope="col">No</th>
-                                <th scope="col">Material Code</th>
-                                <th scope="col">Material Name</th>
-                                <th scope="col">Spec/Size</th>
-                                <th scope="col">Brand</th>
-                                <th scope="col">Unit</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Remark</th>
-                                <th scope="col"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="rowsContainer">
-                            <!-- ข้อมูลที่เลือกจะถูกแสดงที่นี่ -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
                 <div class="d-flex justify-content-center my-1">
-                    <input id="submitButton" class="btn btn-success" type="submit" value="Submit" style="display: none;">
+                    <input id="submitButton" class="btn btn-success" type="submit" value="Submit"
+                        style="display: none;">
                     <!-- Hide initially -->
                 </div>
 
         </div>
 
         </form>
+
+        </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -987,15 +1139,15 @@
                 // สร้างแถวใหม่
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-        <td style="text-align: center;">${newRowNumber}</td>
-        <td><input type="text" name="materialCode[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${materialCode}" readonly></td>
-        <td><input type="text" name="materialName[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${materialName}" readonly></td>
-        <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${specSize}" readonly></td>
-        <td><input type="text" name="brand[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${brand}" readonly></td>
-        <td><input type="text" name="unit[]" class="form-control" style="text-align: center; border: none; background-color: transparent;" value="${unit}" readonly></td>
-        <td><input type="number" name="Amout[]" required class="form-control" style="text-align: center;" step="1"></td>
-        <td><input type="text" name="Remark[]" class="form-control" style="text-align: center;"></td>
-        <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">ลบ</button></td>
+        <td style="text-align: center; font-size: 9px; border: none;">${newRowNumber}</td>
+        <td><input type="text" name="materialCode[]" class="form-control" style="text-align: center; font-size: 9px; border: none; background-color: transparent;" value="${materialCode}" readonly></td>
+        <td><input type="text" name="materialName[]" class="form-control" style="text-align: center; font-size: 9px;border: none; background-color: transparent;" value="${materialName}" readonly></td>
+        <td><input type="text" name="specSize[]" class="form-control" style="text-align: center; font-size: 9px; border: none; background-color: transparent;" value="${specSize}" readonly></td>
+        <td><input type="text" name="brand[]" class="form-control" style="text-align: center;  font-size: 9px; border: none; background-color: transparent;" value="${brand}" readonly></td>
+        <td><input type="text" name="unit[]" class="form-control" style="text-align: center;  font-size: 9px; border: none; background-color: transparent;" value="${unit}" readonly></td>
+        <td><input type="number" name="Amout[]" required class="form-control" style="text-align: center; font-size: 9px;" step="1"></td>
+        <td><input type="text" name="Remark[]" class="form-control" style="text-align: center; font-size: 9px; "></td>
+        <td><button type="button" class="btn btn-danger" onclick="removeRow(this)" style="font-size: 9px;">ลบ</button></td>
     `;
                 // เพิ่มแถวใหม่ลงในคอนเทนเนอร์
                 container.appendChild(newRow);
@@ -1023,71 +1175,72 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
         <script>
-    let timeout;
-    $(document).ready(function() {
-        // ซ่อนปุ่ม Submit ตอนเริ่มต้น
-        $('#submitButton').hide();
-        $('#addButton').hide();
-        
-        // ตรวจสอบค่าที่พิมพ์ใน input #refcode
-        $('#refcode').on('input', function() {
-            clearTimeout(timeout); // ลบ timeout เดิมก่อน
-            let refcode = $(this).val().trim(); // รับค่าที่ผู้ใช้พิมพ์และลบช่องว่าง
+            let timeout;
+            $(document).ready(function() {
+                // ซ่อนปุ่ม Submit ตอนเริ่มต้น
+                $('#submitButton').hide();
+                $('#addButton').hide();
 
-            console.log('Input value:', refcode); // Debug: ดูค่าที่ผู้ใช้พิมพ์
+                // ตรวจสอบค่าที่พิมพ์ใน input #refcode
+                $('#refcode').on('input', function() {
+                    clearTimeout(timeout); // ลบ timeout เดิมก่อน
+                    let refcode = $(this).val().trim(); // รับค่าที่ผู้ใช้พิมพ์และลบช่องว่าง
 
-            timeout = setTimeout(function() {
-                if (refcode) {
-                    // เรียก Ajax เพื่อตรวจสอบ refcode ในระบบ
-                    $.ajax({
-                        url: "{{ route('check.refcode') }}", // URL ที่ใช้ตรวจสอบ
-                        method: "GET",
-                        data: {
-                            refcode: refcode // ส่งค่า refcode ไปยัง server
-                        },
-                        success: function(response) {
-                            if (response.exists) {
-                                // หากพบ refcode
-                                $('#refcode-message').text("Description: " +
-                                        response.description) // แสดงคำอธิบาย
-                                    .css("color", "green") // ข้อความสีเขียว
-                                    .show();
-                                $('#addButton').show(); // แสดงปุ่ม ADD
-                            } else {
-                                // หากไม่พบ refcode
-                                $('#refcode-message').text("Refcode not found.") // แสดงข้อความว่าไม่พบ
-                                    .css("color", "red") // ข้อความสีแดง
-                                    .show();
-                                $('#addButton').hide(); // ซ่อนปุ่ม ADD
-                                $('#submitButton').hide(); // ซ่อนปุ่ม Submit
-                            }
+                    console.log('Input value:', refcode); // Debug: ดูค่าที่ผู้ใช้พิมพ์
+
+                    timeout = setTimeout(function() {
+                        if (refcode) {
+                            // เรียก Ajax เพื่อตรวจสอบ refcode ในระบบ
+                            $.ajax({
+                                url: "{{ route('check.refcode') }}", // URL ที่ใช้ตรวจสอบ
+                                method: "GET",
+                                data: {
+                                    refcode: refcode // ส่งค่า refcode ไปยัง server
+                                },
+                                success: function(response) {
+                                    if (response.exists) {
+                                        // หากพบ refcode
+                                        $('#refcode-message').text("Description: " +
+                                                response.description) // แสดงคำอธิบาย
+                                            .css("color", "green") // ข้อความสีเขียว
+                                            .show();
+                                        $('#addButton').show(); // แสดงปุ่ม ADD
+                                    } else {
+                                        // หากไม่พบ refcode
+                                        $('#refcode-message').text(
+                                                "Refcode not found.") // แสดงข้อความว่าไม่พบ
+                                            .css("color", "red") // ข้อความสีแดง
+                                            .show();
+                                        $('#addButton').hide(); // ซ่อนปุ่ม ADD
+                                        $('#submitButton').hide(); // ซ่อนปุ่ม Submit
+                                    }
+                                }
+                            });
+                        } else {
+                            // หาก input ว่างเปล่า
+                            $('#refcode-message').text('').hide(); // ซ่อนข้อความแจ้งเตือน
+                            $('#addButton').hide(); // ซ่อนปุ่ม ADD
+                            $('#submitButton').hide(); // ซ่อนปุ่ม Submit
                         }
-                    });
-                } else {
-                    // หาก input ว่างเปล่า
-                    $('#refcode-message').text('').hide(); // ซ่อนข้อความแจ้งเตือน
-                    $('#addButton').hide(); // ซ่อนปุ่ม ADD
-                    $('#submitButton').hide(); // ซ่อนปุ่ม Submit
-                }
-            }, 300); // ตั้งเวลา delay (ms) สำหรับการตรวจสอบ
-        });
+                    }, 300); // ตั้งเวลา delay (ms) สำหรับการตรวจสอบ
+                });
 
-        // สร้าง MutationObserver เพื่อตรวจสอบการเปลี่ยนแปลงใน #rowsContainer
-        const rowsObserver = new MutationObserver(function(mutationsList, observer) {
-            // ตรวจสอบว่ามี <tr> ภายใน <tbody> หรือไม่
-            if ($('#rowsContainer tr').length > 0) {
-                $('#submitButton').show(); // แสดงปุ่ม Submit
-            } else {
-                $('#submitButton').hide(); // ซ่อนปุ่ม Submit หากไม่มี <tr>
-            }
-        });
+                // สร้าง MutationObserver เพื่อตรวจสอบการเปลี่ยนแปลงใน #rowsContainer
+                const rowsObserver = new MutationObserver(function(mutationsList, observer) {
+                    // ตรวจสอบว่ามี <tr> ภายใน <tbody> หรือไม่
+                    if ($('#rowsContainer tr').length > 0) {
+                        $('#submitButton').show(); // แสดงปุ่ม Submit
+                    } else {
+                        $('#submitButton').hide(); // ซ่อนปุ่ม Submit หากไม่มี <tr>
+                    }
+                });
 
-        // เริ่มการเฝ้าดูการเปลี่ยนแปลงใน #rowsContainer
-        rowsObserver.observe(document.getElementById('rowsContainer'), {
-            childList: true, // เฝ้าดูการเปลี่ยนแปลงของลูก (child nodes)
-        });
-    });
-</script>
+                // เริ่มการเฝ้าดูการเปลี่ยนแปลงใน #rowsContainer
+                rowsObserver.observe(document.getElementById('rowsContainer'), {
+                    childList: true, // เฝ้าดูการเปลี่ยนแปลงของลูก (child nodes)
+                });
+            });
+        </script>
 
 
 
@@ -1146,7 +1299,7 @@
             }
         </script>
 
-        <!-- ซ่อน Show Data -->
+        <!-- ซ่อน ประวัติการนำเข้า -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const sidebar = document.querySelector('.sidebar'); // เลือก sidebar
