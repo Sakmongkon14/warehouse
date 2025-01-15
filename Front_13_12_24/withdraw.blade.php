@@ -1009,6 +1009,7 @@
                                             <th scope="col">Transaction_ID</th>
                                             <th scope="col">Withdraw</th>
                                             <th scope="col">Remark</th>
+                                            <th scope="col">Transaction Maker</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1037,6 +1038,7 @@
                                                 <td>{{ $item->transaction_id }}</td>
                                                 <td>{{ $item->quantity_with }}</td>
                                                 <td>{{ $item->remark }}</td>
+                                                <td>{{ $item->name}}</td>
 
                                             </tr>
                                         @endforeach
