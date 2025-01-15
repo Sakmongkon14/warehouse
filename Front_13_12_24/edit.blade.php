@@ -797,6 +797,7 @@
                         <th scope="col">Date</th>
                         <th scope="col">Transaction ID</th>
                         <th scope="col">Import Quantity</th>
+                        <th scope="col">Transaction Name</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -841,6 +842,8 @@
                                 value="{{ $edit->transaction }}" readonly></td>
                         <td><input type="text" class="form-control" name="import_quantity"
                                 value="{{ $edit->import_quantity }}" readonly></td>
+                        <td><input type="text" class="form-control" name="name"
+                                value="{{ $edit->name }}" readonly></td>
                     </tr>
 
                 </tbody>
