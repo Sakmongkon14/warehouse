@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\Auth;
+
+
 
 use function Laravel\Prompts\table;
 
@@ -58,6 +61,10 @@ class ImportItemController extends Controller
 
     public function additem(Request $request)
     {
+
+        $user = Auth::user()->name; // ดึงชื่อผู้ใช้จาก Auth
+
+        //dd($user);
 
         // รับข้อมูลจาก request
         $materialCodes = $request->materialCode ?? [];
@@ -147,7 +154,8 @@ class ImportItemController extends Controller
                     'remark' => $request->Remark[$i] ?? '',
                     'date' => $date[$i],
                     'transaction' => $newTransactionId,
-                    'import_quantity' => 0 // ตั้งค่าจำนวนทั้งหมด
+                    'import_quantity' => 0, // ตั้งค่าจำนวนทั้งหมด
+                    'name' => $user // เพิ่มชื่อผู้ใช้งาน
                 ];
             }
             // เตรียมข้อมูลสำหรับตรวจสอบและอัปเดตใน sum
@@ -654,6 +662,9 @@ class ImportItemController extends Controller
 
     public function addWithdraw(Request $request)
     {
+
+        $user = Auth::user()->name; // ดึงชื่อผู้ใช้จาก Auth
+
         // รับข้อมูลจาก Request
         $dates = $request->date ?? [];
         $refcodes_before = $request->refcodename ?? [];
@@ -729,6 +740,7 @@ class ImportItemController extends Controller
                     'transaction_id' => $newTransactionId,
                     'quantity_before' => $avai[$i] ?? null,
                     'quantity_with' => $quantities_with[$i] ?? null,
+                    'name' => $user
                 ];
             }
 
@@ -840,6 +852,8 @@ class ImportItemController extends Controller
             ]
         );
 
+        $user = Auth::user()->name; // ดึงชื่อผู้ใช้จาก Auth
+
         $quantity = $request->quantity; // INPUT เก่า
         $newquantity = $request->quantity_with ?? null ?? 0; // INPUT ใหม่ที่กรอก
 
@@ -870,6 +884,7 @@ class ImportItemController extends Controller
             'date' => $request->date,
             'transaction' => $request->transaction,
             'import_quantity' => $request->import_quantity,
+            'name' => $user
         ];
 
         $newSum =   [
@@ -987,6 +1002,10 @@ class ImportItemController extends Controller
         $newquantity_input = $request->quantity_with; // ค่า INPUT ใหม่ที่กรอก
         $available = $request->available;  // ค่าที่สามารถเบิกได้ก่อนคำนวณ
 
+
+        $user = Auth::user()->name; // ดึงชื่อผู้ใช้จาก Auth
+
+
         // เพิ่มข้อมูลใหม่ใน withdraw
         $newWithdraw = [
             'refcode_with' => $request->refcode_with, // To
@@ -1001,6 +1020,7 @@ class ImportItemController extends Controller
             'quantity_with' => $newquantity_input,
             'remark' => $request->remark,
             'droppoint' => $request->droppoint,
+            'name' => $user
         ];
 
         //dd($newWithdraw);
