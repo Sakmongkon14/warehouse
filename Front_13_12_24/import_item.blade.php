@@ -951,6 +951,7 @@
                                             <th scope="col">Date</th>
                                             <th scope="col">Transaction ID</th>
                                             <th scope="col">Import Quantity</th>
+                                            <th scope="col">Transaction Maker</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -968,11 +969,12 @@
 
                                                 <td>{{ $item->refcode_import }}</td>
 
-                                                @foreach ($droppoint as $no)
+                                             <!--   @foreach ($droppoint as $no)
                                                     @if ($item->droppoint_import == $no->id)
                                                         <td>{{ $no->droppoint }}</td>
                                                     @endif
                                                 @endforeach
+                                             -->
 
                                                 <td>{{ $item->droppoint_import}}</td>
                                                 <td>{{ $item->material_code_import }}</td>
@@ -985,6 +987,7 @@
                                                 <td>{{ $item->date }}</td>
                                                 <td>{{ $item->transaction }}</td>
                                                 <td>{{ $item->import_quantity }}</td>
+                                                <td>{{ $item->name }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
