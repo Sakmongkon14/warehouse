@@ -796,6 +796,7 @@
                         <th scope="col">Avilable</th>
                         <th scope="col">Withdraw</th>
                         <th scope="col">Remark</th>
+                        <th scope="col">Transaction Maker</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -847,6 +848,10 @@
 
                         <td><input type="text" class="form-control" name="remark"
                                 value="{{ $editWith->remark }}" required>
+                        </td>
+
+                        <td><input type="text" class="form-control" name="name"
+                                value="{{ $editWith->name }}" required>
                         </td>
 
                     </tr>
