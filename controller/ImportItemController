@@ -227,8 +227,7 @@ class ImportItemController extends Controller
 
         // ดึงข้อมูล 20 แถวจากตาราง refcode_data
         $refcode = DB::table('refcode_data')
-            ->orderByDesc('id')
-            ->paginate(20);
+            ->get();
 
         // dd($refcode);
 
@@ -324,10 +323,43 @@ class ImportItemController extends Controller
         }
     }
 
+    //Add Refcode
+    public function addrefcodemanual(Request $request)
+    {
+        $request->validate([
+            'refcode' => 'required',
+            'description' => 'required',
+        ], [
+            'refcode.required' => 'กรุณากรอก Refcode',
+            'description.required' => 'กรุณากรอก Description',
+        ]);
+
+        //
+        $checkRefcode = DB::table('refcode_data')
+            ->where('refcode', $request->input('refcode'))
+            ->first();
+
+        if ($checkRefcode) {
+            return redirect()->back()->withErrors(['refcode' => 'Refcode นี้มีอยู่ในระบบอยู่แล้ว'])->withInput();
+        }
+
+        $add = [
+            'refcode' => $request->input('refcode'), //ดึงค่า Refcode จากที่กรอก request
+            'description' => $request->input('description') //ดึงค่า Description จากที่กรอก request
+        ];
+
+        //dd($add);
+
+        // เก็บข้อมูลลงฐานข้อมูล
+        DB::table('refcode_data')->insert($add);
+
+        // Redirect พร้อมข้อความแจ้งเตือนความสำเร็จ
+        return redirect()->back()->with('success', 'เพิ่ม Refcode สำเร็จ!');
+    }
 
     //หน้า Material
 
-    //Import Material
+        //Import Material
     public function import_material(Request $request)
     {
 
@@ -379,7 +411,7 @@ class ImportItemController extends Controller
         return view('material', compact('material', 'dataToSave'));
     }
 
-    //SAVE IMPORT Savematerial 
+        //SAVE IMPORT Savematerial 
     public function savematerial(Request $request)
     {
 
@@ -439,9 +471,49 @@ class ImportItemController extends Controller
         }
     }
 
+        //ADD Material
+    public function addmaterialmanual(Request $request){
+        $request->validate([
+            'material_c' => 'required',
+            'material_n' => 'required',
+            'spec_size' => 'required',
+          //  'brand' => 'required',
+            'unit' => 'required',
+            'price' => 'required',  
+        ], [
+            'material_c.required' => 'กรุณากรอก Material_Code',
+            'material_n.required' => 'กรุณากรอก Material_Name',
+        ]);
+
+        $checkMaterial = DB::table('material_code')
+        ->where('material_c',$request->input('material_c'))
+        ->first();
+
+        if($checkMaterial){
+            return redirect()->back()->withErrors(['material_c' => 'Material_Code นี้มีอยู่ในระบบอยู่แล้ว'])->withInput();
+        }
+        
+        $add = [
+            'material_c' => $request->input('material_c'),
+            'material_n' => $request->input('material_n'),
+            'spec_size' => $request->input('spec_size'),
+            'brand' => $request->input('brand'),
+            'unit' => $request->input('unit'),
+            'price' => $request->input('price')
+        ];
+
+        //dd($add);
+
+        DB::table('material_code')->insert($add);
+
+        return redirect()->back()-with('success', 'เพิ่ม Material สำเร็จ');
+        // 
+    }     
+        
+
     //หน้า Droppoint    
 
-    //Droppoint
+        //Droppoint
     public function droppoint(Request $request)
     {
 
@@ -488,7 +560,7 @@ class ImportItemController extends Controller
         DB::table('droppoint_import')->insert($add);
 
         // Redirect พร้อมข้อความแจ้งเตือนความสำเร็จ
-        return redirect()->back()->with('success', 'Droppoint added successfully!');
+        return redirect()->back()->with('success', 'เพิ่ม Droppoint สำเร็จ!');
     }
 
     public function import_droppoint(Request $request)
@@ -942,7 +1014,7 @@ class ImportItemController extends Controller
         if ($newSumImport) {
             $newQuantity = abs($newSumImport->quantity + $newData['quantity']);
             $newAvailable = abs($newSumImport->available + $newData['quantity']); //เพิ่ม Available ใหม่
-/*
+            /*
             dd(
                 'ค่าเดิม = ' . $newSumImport->quantity,
                 'ค่าใหม่ที่กรอก (-) = ' . $newData['quantity'],
