@@ -225,8 +225,9 @@ class ImportItemController extends Controller
 
         $dataToSave = [];
 
-        // ดึงข้อมูล 20 แถวจากตาราง refcode_data
+        // เรียงข้อมูลจากใหม่ไปเก่า จากตาราง refcode_data
         $refcode = DB::table('refcode_data')
+            ->orderBy('id','desc')
             ->get();
 
         // dd($refcode);
@@ -477,12 +478,14 @@ class ImportItemController extends Controller
             'material_c' => 'required',
             'material_n' => 'required',
             'spec_size' => 'required',
-          //  'brand' => 'required',
+          /*  'brand' => 'required',
             'unit' => 'required',
             'price' => 'required',  
+            */
         ], [
             'material_c.required' => 'กรุณากรอก Material_Code',
             'material_n.required' => 'กรุณากรอก Material_Name',
+            'spec_size.required' => 'กรุณากรอก required',
         ]);
 
         $checkMaterial = DB::table('material_code')
@@ -506,7 +509,7 @@ class ImportItemController extends Controller
 
         DB::table('material_code')->insert($add);
 
-        return redirect()->back()-with('success', 'เพิ่ม Material สำเร็จ');
+        return redirect()->back()->with('success', 'เพิ่ม Material สำเร็จ');
         // 
     }     
         
